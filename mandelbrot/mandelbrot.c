@@ -11,27 +11,27 @@ int mandelbrot(float real, float imag)
 	int iter_count = 0;
 
 	while (iter_count < MAXITER) {
-		if (real * real + imag * imag >= 4) {
-			iter_count = MAXITER;
+		if ((real * real) + (imag * imag) >= 4.0f) {
 			break;
 		}
 		iter_count++;
-		real = real * real + real0;
-		imag = imag * imag + imag0;
+		real = (real * real) - (imag * imag) + real0;
+		imag = 2 * real * imag + imag0;
 	}
 	return iter_count;
 }
 
 int main()
 {
-	float list[100];
+	float list[1000];
 	int index = 0;
-	for (float i = -2.0; i += 0.1; i <= 1.0) {
-		list[index] = i;
+	for (int i = -200; i <= 100; i ++) {
+		float fl = i / 100.0f;
+		list[index] = fl;
 		index++;
-		printf("%d", mandelbrot(i, 0.0));
+		printf("%i\n", mandelbrot(fl, -0.2f));
 	}
-	printf(sizeof(list));
+	printf("Liste boyutu '%zu' byte\n", sizeof(list));
 }
 
 // Programı çalıştır: Ctrl + F5 veya Hata Ayıkla > Hata Ayıklamadan Başlat menüsü
