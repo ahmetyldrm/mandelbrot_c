@@ -1,7 +1,9 @@
 ﻿// mandelbrot.cpp : Bu dosya 'main' işlevi içeriyor. Program yürütme orada başlayıp biter.
 //
 
+# include <SDL.h> 
 # include <stdio.h>
+
 # define MAXITER 128
 
 int mandelbrot(float real, float imag)
@@ -21,7 +23,7 @@ int mandelbrot(float real, float imag)
 	return iter_count;
 }
 
-int main()
+int main2()
 {
 	float list[1000];
 	int index = 0;
@@ -29,9 +31,41 @@ int main()
 		float fl = i / 100.0f;
 		list[index] = fl;
 		index++;
-		printf("%i\n", mandelbrot(fl, -0.2f));
+		printf("%i\n", mandelbrot(fl, 0.0f));
 	}
 	printf("Liste boyutu '%zu' byte\n", sizeof(list));
+}
+
+int main()
+{
+	const int SCREEN_WIDTH = 640;
+	const int SCREEN_HEIGHT = 480;
+
+	SDL_Window* window = NULL;
+	SDL_Surface* screenSurface = NULL;
+
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+	}
+	else {
+		window = SDL_CreateWindow("Mandelbrot Set",
+			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+			SCREEN_WIDTH, SCREEN_HEIGHT,
+			SDL_WINDOW_SHOWN);
+		if (window == NULL) {
+			printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+		}
+		else {
+			screenSurface = SDL_GetWindowSurface(window);
+			SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 128, 128, 36));
+			SDL_UpdateWindowSurface(window);
+			SDL_Delay(2000);
+			SDL_DestroyWindow(window);
+			SDL_Quit();
+
+			return 0;
+		}
+	}
 }
 
 // Programı çalıştır: Ctrl + F5 veya Hata Ayıkla > Hata Ayıklamadan Başlat menüsü
