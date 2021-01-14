@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mandelbrot", "mandelbrot\mandelbrot.vcxproj", "{2EED604A-9E08-4CA6-B46C-C2AAC3393A8B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sample-Test1", "Sample-Test1\Sample-Test1.vcxproj", "{37535C37-A7E3-43AC-A237-1C3D3C69903E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{2EED604A-9E08-4CA6-B46C-C2AAC3393A8B}.Release|x64.Build.0 = Release|x64
 		{2EED604A-9E08-4CA6-B46C-C2AAC3393A8B}.Release|x86.ActiveCfg = Release|Win32
 		{2EED604A-9E08-4CA6-B46C-C2AAC3393A8B}.Release|x86.Build.0 = Release|Win32
+		{37535C37-A7E3-43AC-A237-1C3D3C69903E}.Debug|x64.ActiveCfg = Debug|x64
+		{37535C37-A7E3-43AC-A237-1C3D3C69903E}.Debug|x64.Build.0 = Debug|x64
+		{37535C37-A7E3-43AC-A237-1C3D3C69903E}.Debug|x86.ActiveCfg = Debug|Win32
+		{37535C37-A7E3-43AC-A237-1C3D3C69903E}.Debug|x86.Build.0 = Debug|Win32
+		{37535C37-A7E3-43AC-A237-1C3D3C69903E}.Release|x64.ActiveCfg = Release|x64
+		{37535C37-A7E3-43AC-A237-1C3D3C69903E}.Release|x64.Build.0 = Release|x64
+		{37535C37-A7E3-43AC-A237-1C3D3C69903E}.Release|x86.ActiveCfg = Release|Win32
+		{37535C37-A7E3-43AC-A237-1C3D3C69903E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
