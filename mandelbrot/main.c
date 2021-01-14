@@ -10,15 +10,60 @@
 #define SCREEN_WIDTH 1366
 #define SCREEN_HEIGHT 720
 
+bool initSDL();
+bool closeSDL();
 
-bool initSDL() {
-	SDL_Window* window = NULL;
-	SDL_Surface* screenSurface = NULL;
+SDL_Window*   sdlWindow   = NULL;
+SDL_Renderer* sdlRenderer = NULL;
+SDL_Texture*  sdlTexture  = NULL;
 
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+int sdlTextureWidth  = 0;
+int sdlTextureHeight = 0;
+
+
+
+bool initSDL()
+{
+	//Initialization flag
+	bool success = true;
+
+	//Initialize SDL
+	if (SDL_Init(SDL_INIT_VIDEO) < 0){
+		printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
+		success = false;
 	}
-
+	else{
+		//Set texture filtering to linear
+		if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1")){
+			printf("Warning: Linear texture filtering not enabled!");
+		}
+		//Create window
+		sdlWindow = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+		if (sdlWindow == NULL){
+			printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
+			success = false;
+		}
+		else{
+			//Create renderer for window
+			sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+			if (sdlRenderer == NULL){
+				printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+				success = false;
+			}
+			else{
+				//Initialize renderer color
+				SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 0xff);
+				//Create blank streamable texture
+				sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_GetWindowPixelFormat(sdlWindow), 
+					SDL_TEXTUREACCESS_STREAMING, 
+					sdlTextureWidth, sdlTextureHeight);
+				if (sdlTexture == NULL){
+					printf("Unable to create blank texture! SDL Error: %s\n", SDL_GetError());
+				}
+			}
+		}
+	}
+	return success;
 }
 
 int main()
