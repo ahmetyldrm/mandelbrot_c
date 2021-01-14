@@ -1,7 +1,7 @@
 ﻿
 #include "mandelbrot.h"
 
-int mandelbrot(double real, double imag)
+int getMandelbrotIterCount(double real, double imag)
 {
 	double real0 = real;
 	double imag0 = imag;
@@ -20,12 +20,14 @@ int mandelbrot(double real, double imag)
 	return iter_count;
 }
 
+
 _Lcomplex addLComplex(_Lcomplex z1, _Lcomplex z2) {
 	return _LCbuild(creall(z1) + creall(z2), cimagl(z1) + cimagl(z2));
 
 }
 
-int getMandelbrotIterCount(_Lcomplex c) {
+int getMandelbrotIterCount_LC(_Lcomplex c)
+{
 	_C_ldouble_complex c0 = c;
 	int iter_count = 0;
 	while (iter_count < MAXITER) {

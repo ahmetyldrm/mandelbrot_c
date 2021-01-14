@@ -1,34 +1,28 @@
-﻿// mandelbrot.cpp : Bu dosya 'main' işlevi içeriyor. Program yürütme orada başlayıp biter.
-//
+﻿
 
-#include <SDL.h> 
 #include <stdio.h>
 #include <stdbool.h>
+#include <SDL.h> 
 #include "mandelbrot.h"
 
 //#define MAXITER 255
 
+#define SCREEN_WIDTH 1366
+#define SCREEN_HEIGHT 720
 
 
-int main2()
-{
-	float list[1000];
-	int index = 0;
-	for (int i = -200; i <= 100; i ++) {
-		float fl = i / 100.0f;
-		list[index] = fl;
-		index++;
-		printf("%i\n", mandelbrot(fl, 0.0f));
+bool initSDL() {
+	SDL_Window* window = NULL;
+	SDL_Surface* screenSurface = NULL;
+
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
 	}
-	printf("Liste boyutu '%zu' byte\n", sizeof(list));
-	return 0;
-}
 
+}
 
 int main()
 {
-	const int SCREEN_WIDTH = 1000;
-	const int SCREEN_HEIGHT = 1000;
 
 	SDL_Window* window = NULL;
 	SDL_Surface* screenSurface = NULL;
@@ -55,7 +49,7 @@ int main()
 
 			for (int y = 0; y < SCREEN_HEIGHT; y++) {
 				for (int x = 0; x < SCREEN_WIDTH; x++) {
-					Uint8 colorValue = mandelbrot(x / (SCREEN_WIDTH  / (realBorders[1] - realBorders[0])) + realBorders[0], 
+					Uint8 colorValue = getMandelbrotIterCount(x / (SCREEN_WIDTH  / (realBorders[1] - realBorders[0])) + realBorders[0],
 												y / (SCREEN_HEIGHT / (imagBorders[1] - imagBorders[0])) + imagBorders[0]);
 					/*Uint8 colorValue = getMandelbrotIterCount(_LCbuild(x / (SCREEN_WIDTH / (realBorders[1] - realBorders[0])) + realBorders[0],
 																	y / (SCREEN_HEIGHT / (imagBorders[1] - imagBorders[0])) + imagBorders[0]));*/

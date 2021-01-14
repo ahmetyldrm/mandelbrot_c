@@ -3,7 +3,7 @@
 
 int main4() {
 	for (int i = -10; i < 10; i++) {
-		printf("%d ", mandelbrot(0.0, i / 10.0));
+		printf("%d ", getMandelbrotIterCount(0.0, i / 10.0));
 	}
 	return 0;
 }
