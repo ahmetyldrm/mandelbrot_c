@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <SDL.h> 
+#include "main.h"
 #include "mandelbrot.h"
 
 //#define MAXITER 255
@@ -11,19 +12,19 @@
 #define SCREEN_HEIGHT 720
 
 bool initSDL();
-bool closeSDL();
+void closeSDL();
 
 SDL_Window*   sdlWindow   = NULL;
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture*  sdlTexture  = NULL;
 
+
+// TODO Bunları mandelbrotta oluşturulacak piksel sayısına göre belirle
 int sdlTextureWidth  = 0;
 int sdlTextureHeight = 0;
 
 
-
-bool initSDL()
-{
+bool initSDL(){
 	//Initialization flag
 	bool success = true;
 
@@ -64,6 +65,21 @@ bool initSDL()
 		}
 	}
 	return success;
+}
+
+void closeSDL() {
+	//Destroy texture
+	if (sdlTexture != NULL){
+		SDL_DestroyTexture(sdlTexture);
+		sdlTexture = NULL;
+		sdlTextureWidth = 0;
+		sdlTextureHeight = 0;
+	}
+	//Destroy window and renderer	
+	SDL_DestroyRenderer(sdlRenderer);
+	SDL_DestroyWindow(sdlWindow);
+	sdlWindow = NULL;
+	sdlRenderer = NULL;
 }
 
 int main()

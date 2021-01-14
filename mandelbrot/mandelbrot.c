@@ -8,7 +8,7 @@ int getMandelbrotIterCount(double real, double imag)
 	int iter_count = 0;
 	double real_temp = 0.0;
 
-	while (iter_count < MAXITER) {
+	while (iter_count < MAND_MAX_ITER) {
 		if ((real * real) + (imag * imag) >= 4.0) {
 			break;
 		}
@@ -30,7 +30,7 @@ int getMandelbrotIterCount_LC(_Lcomplex c)
 {
 	_C_ldouble_complex c0 = c;
 	int iter_count = 0;
-	while (iter_count < MAXITER) {
+	while (iter_count < MAND_MAX_ITER) {
 		if (cabsl(c) >= 2.0) {
 			break;
 		}
