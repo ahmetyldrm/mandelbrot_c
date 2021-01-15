@@ -1,6 +1,7 @@
 ﻿
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <SDL.h> 
 #include "main.h"
@@ -8,8 +9,13 @@
 
 //#define MAXITER 255
 
-#define SCREEN_WIDTH 1366
-#define SCREEN_HEIGHT 720
+#define SCREEN_WIDTH 1750
+#define SCREEN_HEIGHT 1000
+
+double mandRealMin = -2.2;
+double mandRealMax = 0.6;
+double mandImagMin = -1.2;
+double mandImagMax = 1.2;
 
 bool initSDL();
 void closeSDL();
@@ -18,11 +24,33 @@ SDL_Window*   sdlWindow   = NULL;
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture*  sdlTexture  = NULL;
 
-
 // TODO Bunları mandelbrotta oluşturulacak piksel sayısına göre belirle
-int sdlTextureWidth  = 0;
-int sdlTextureHeight = 0;
+Uint32* sdlTexturePixels = NULL;
+int sdlTexturePitch = 0; 
+//Uint32 sdlTextureFormat = 0;
+//int sdlTextureWidth  = 0;
+//int sdlTextureHeight = 0;
 
+//___________________________________
+//Mandelbrot functions
+
+double getPrecission() {
+	double screenScale = (double)SCREEN_WIDTH / SCREEN_HEIGHT;
+	double mandelScale = (mandRealMax - mandRealMin) / (mandImagMax - mandImagMin);
+	if (screenScale >= mandelScale) {
+		return (mandImagMax - mandImagMin) / SCREEN_HEIGHT;
+	}
+	return (mandRealMax - mandRealMin) / SCREEN_WIDTH;
+}
+int getRealPointCount() {
+	return (int)((mandRealMax - mandRealMin) / getPrecission());
+}
+int getImagPointCount() {
+	return (int)((mandImagMax - mandImagMin) / getPrecission());
+}
+
+//___________________________________
+//SDL functions
 
 bool initSDL(){
 	//Initialization flag
@@ -57,10 +85,13 @@ bool initSDL(){
 				//Create blank streamable texture
 				sdlTexture = SDL_CreateTexture(sdlRenderer, SDL_GetWindowPixelFormat(sdlWindow), 
 					SDL_TEXTUREACCESS_STREAMING, 
-					sdlTextureWidth, sdlTextureHeight);
+					getRealPointCount(), getImagPointCount());
 				if (sdlTexture == NULL){
 					printf("Unable to create blank texture! SDL Error: %s\n", SDL_GetError());
 				}
+				//else{
+					//SDL_QueryTexture(sdlTexture, &sdlTextureFormat, NULL, &sdlTextureWidth, &sdlTextureHeight);
+				//}
 			}
 		}
 	}
@@ -68,12 +99,18 @@ bool initSDL(){
 }
 
 void closeSDL() {
+	mandRealMin = 0;
+	mandRealMax = 0;
+	mandImagMax = 0;
+	mandImagMin = 0;
 	//Destroy texture
 	if (sdlTexture != NULL){
 		SDL_DestroyTexture(sdlTexture);
 		sdlTexture = NULL;
-		sdlTextureWidth = 0;
-		sdlTextureHeight = 0;
+		sdlTexturePixels =NULL;
+		sdlTexturePitch = 0;
+		/*sdlTextureWidth = 0;
+		sdlTextureHeight = 0;*/
 	}
 	//Destroy window and renderer	
 	SDL_DestroyRenderer(sdlRenderer);
@@ -82,65 +119,133 @@ void closeSDL() {
 	sdlRenderer = NULL;
 }
 
-int main()
-{
-
-	SDL_Window* window = NULL;
-	SDL_Surface* screenSurface = NULL;
-
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-	}
-	else {
-		window = SDL_CreateWindow("Mandelbrot Set",
-			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-			SCREEN_WIDTH, SCREEN_HEIGHT,
-			SDL_WINDOW_SHOWN);
-		if (window == NULL) {
-			printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-		}
-		else {
-			screenSurface = SDL_GetWindowSurface(window);
-			//SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0, 0, 0));
-			Uint32* pixels = (Uint32*)screenSurface->pixels;
-			//pixels[640 * 10 + 10] = SDL_MapRGB(screenSurface->format, 255, 0, 255);
-
-			double realBorders[2] = { -2.0, 1.0 };
-			double imagBorders[2] = { -1.5, 1.5 };
-
-			for (int y = 0; y < SCREEN_HEIGHT; y++) {
-				for (int x = 0; x < SCREEN_WIDTH; x++) {
-					Uint8 colorValue = getMandelbrotIterCount(x / (SCREEN_WIDTH  / (realBorders[1] - realBorders[0])) + realBorders[0],
-												y / (SCREEN_HEIGHT / (imagBorders[1] - imagBorders[0])) + imagBorders[0]);
-					/*Uint8 colorValue = getMandelbrotIterCount(_LCbuild(x / (SCREEN_WIDTH / (realBorders[1] - realBorders[0])) + realBorders[0],
-																	y / (SCREEN_HEIGHT / (imagBorders[1] - imagBorders[0])) + imagBorders[0]));*/
-					pixels[y * SCREEN_WIDTH + x] = SDL_MapRGB(screenSurface->format, colorValue, colorValue, colorValue);
-				}
+void updateTexturePixels() {
+	int realPointCount = getRealPointCount();
+	int imagPointCount = getImagPointCount();
+	
+	SDL_LockTexture(sdlTexture, NULL, (void**) &sdlTexturePixels, &sdlTexturePitch);
+	SDL_PixelFormat* mappingFormat = SDL_AllocFormat(SDL_GetWindowPixelFormat(sdlWindow));
+	double mandPrecission = getPrecission();
+	if (sdlTexturePixels) {
+		for (int y = 0; y < imagPointCount; y++) {
+			for (int x = 0; x < realPointCount; x++) {
+				Uint8 colorValue = getMandelbrotIterCount(mandRealMin + (x * mandPrecission), mandImagMax - (y * mandPrecission));
+				/*Uint8 colorValue = getMandelbrotIterCount(_LCbuild(x / (SCREEN_WIDTH / (realBorders[1] - realBorders[0])) + realBorders[0],
+																y / (SCREEN_HEIGHT / (imagBorders[1] - imagBorders[0])) + imagBorders[0]));*/
+				sdlTexturePixels[y * sdlTexturePitch / sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorValue, colorValue, colorValue);
 			}
-
-			SDL_Event event;
-			bool running = true;
-			while (running) {
-				while (SDL_PollEvent(&event) != 0)
-				{
-					//User requests quit
-					if (event.type == SDL_QUIT)
-					{
-						running = false;
-					}
-				}
-				SDL_UpdateWindowSurface(window);
-				SDL_Delay(50);
-			}
-			
-			SDL_DestroyWindow(window);
-			pixels = NULL;
-			SDL_Quit();
-
-			return 0;
 		}
 	}
+	SDL_UnlockTexture(sdlTexture);
+	SDL_FreeFormat(mappingFormat);
 }
+
+int main() 
+{
+	bool quit = false;
+	//Start up SDL and create window
+	if (!initSDL()){
+		printf("Failed to initialize!\n");
+	}
+	else{
+		updateTexturePixels();
+		//Event handler
+		SDL_Event event;
+		
+		//While application is running
+		while (!quit){
+			//Handle events on queue
+			while (SDL_PollEvent(&event) != 0){
+				//User requests quit
+				if (event.type == SDL_QUIT){
+					quit = true;
+				}
+			}
+			//Clear screen
+			SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 0xFF);
+			SDL_RenderClear(sdlRenderer);
+
+			//Render stick figure
+			//sdlTexture.render((SCREEN_WIDTH - sdlTexture.getWidth()) / 2, (SCREEN_HEIGHT - sdlTexture.getHeight()) / 2);
+			SDL_Rect centerQuad = { 
+				(SCREEN_WIDTH - getRealPointCount()) / 2, 
+				(SCREEN_HEIGHT - getImagPointCount()) / 2,  
+				getRealPointCount(), 
+				getImagPointCount() };
+
+			SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, &centerQuad);
+
+			//Update screen
+			SDL_RenderPresent(sdlRenderer);
+		}
+	}
+
+	//Free resources and close SDL
+	closeSDL();
+
+	return 0;
+}
+
+
+//int main()
+//{
+//
+//	SDL_Window* window = NULL;
+//	SDL_Surface* screenSurface = NULL;
+//
+//	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+//		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+//	}
+//	else {
+//		window = SDL_CreateWindow("Mandelbrot Set",
+//			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+//			SCREEN_WIDTH, SCREEN_HEIGHT,
+//			SDL_WINDOW_SHOWN);
+//		if (window == NULL) {
+//			printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+//		}
+//		else {
+//			screenSurface = SDL_GetWindowSurface(window);
+//			//SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0, 0, 0));
+//			Uint32* pixels = (Uint32*)screenSurface->pixels;
+//			//pixels[640 * 10 + 10] = SDL_MapRGB(screenSurface->format, 255, 0, 255);
+//
+//			double realBorders[2] = { -2.0, 1.0 };
+//			double imagBorders[2] = { -1.5, 1.5 };
+//
+//			for (int y = 0; y < SCREEN_HEIGHT; y++) {
+//				for (int x = 0; x < SCREEN_WIDTH; x++) {
+//					Uint8 colorValue = getMandelbrotIterCount(x / (SCREEN_WIDTH  / (realBorders[1] - realBorders[0])) + realBorders[0],
+//												y / (SCREEN_HEIGHT / (imagBorders[1] - imagBorders[0])) + imagBorders[0]);
+//					/*Uint8 colorValue = getMandelbrotIterCount(_LCbuild(x / (SCREEN_WIDTH / (realBorders[1] - realBorders[0])) + realBorders[0],
+//																	y / (SCREEN_HEIGHT / (imagBorders[1] - imagBorders[0])) + imagBorders[0]));*/
+//					pixels[y * SCREEN_WIDTH + x] = SDL_MapRGB(screenSurface->format, colorValue, colorValue, colorValue);
+//				}
+//			}
+//
+//			SDL_Event event;
+//			bool running = true;
+//			while (running) {
+//				while (SDL_PollEvent(&event) != 0)
+//				{
+//					//User requests quit
+//					if (event.type == SDL_QUIT)
+//					{
+//						running = false;
+//					}
+//				}
+//				SDL_UpdateWindowSurface(window);
+//				SDL_Delay(50);
+//			}
+//			
+//			SDL_DestroyWindow(window);
+//			pixels = NULL;
+//			SDL_Quit();
+//
+//			return 0;
+//		}
+//	}
+//}
 //int main(int argc, char* args[])
 //{
 //	//Start up SDL and create window
