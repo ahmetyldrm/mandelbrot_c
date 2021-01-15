@@ -9,11 +9,11 @@
 
 //#define MAXITER 255
 
-#define SCREEN_WIDTH 1750
-#define SCREEN_HEIGHT 1000
+#define SCREEN_WIDTH 1200
+#define SCREEN_HEIGHT 700
 
 double mandRealMin = -2.2;
-double mandRealMax = 0.6;
+double mandRealMax = 1.0;
 double mandImagMin = -1.2;
 double mandImagMax = 1.2;
 
@@ -24,12 +24,11 @@ SDL_Window*   sdlWindow   = NULL;
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture*  sdlTexture  = NULL;
 
-// TODO Bunları mandelbrotta oluşturulacak piksel sayısına göre belirle
 Uint32* sdlTexturePixels = NULL;
 int sdlTexturePitch = 0; 
-//Uint32 sdlTextureFormat = 0;
-//int sdlTextureWidth  = 0;
-//int sdlTextureHeight = 0;
+Uint32 sdlTextureFormat = 0;
+int sdlTextureWidth  = 0;
+int sdlTextureHeight = 0;
 
 //___________________________________
 //Mandelbrot functions
@@ -47,6 +46,29 @@ int getRealPointCount() {
 }
 int getImagPointCount() {
 	return (int)((mandImagMax - mandImagMin) / getPrecission());
+}
+void zoomIn(int zoomfactor) {
+	double precission = getPrecission();
+	double mandelScale = (mandRealMax - mandRealMin) / (mandImagMax - mandImagMin);
+	mandRealMin += zoomfactor * precission * mandelScale;
+	mandRealMax -= zoomfactor * precission * mandelScale;
+	mandImagMin += zoomfactor * precission;
+	mandImagMax -= zoomfactor * precission;
+}
+void zoomOut(int zoomfactor) {
+	double precission = getPrecission();
+	double mandelScale = (mandRealMax - mandRealMin) / (mandImagMax - mandImagMin);
+	mandRealMin -= zoomfactor * precission * mandelScale;
+	mandRealMax += zoomfactor * precission * mandelScale;
+	mandImagMin -= zoomfactor * precission;
+	mandImagMax += zoomfactor * precission;
+}
+void slide(int x, int y) {
+	double precission = getPrecission();
+	mandRealMin += x * precission;
+	mandRealMax += x * precission;
+	mandImagMin += y * precission;
+	mandImagMax += y * precission;
 }
 
 //___________________________________
@@ -67,7 +89,7 @@ bool initSDL(){
 			printf("Warning: Linear texture filtering not enabled!");
 		}
 		//Create window
-		sdlWindow = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+		sdlWindow = SDL_CreateWindow("Mandelbrot Set", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 		if (sdlWindow == NULL){
 			printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
 			success = false;
@@ -107,11 +129,12 @@ void closeSDL() {
 	if (sdlTexture != NULL){
 		SDL_DestroyTexture(sdlTexture);
 		sdlTexture = NULL;
-		sdlTexturePixels =NULL;
-		sdlTexturePitch = 0;
-		/*sdlTextureWidth = 0;
-		sdlTextureHeight = 0;*/
 	}
+	sdlTexturePixels = NULL;
+	sdlTextureFormat = NULL;
+	sdlTexturePitch = 0;
+	sdlTextureWidth = 0;
+	sdlTextureHeight = 0;
 	//Destroy window and renderer	
 	SDL_DestroyRenderer(sdlRenderer);
 	SDL_DestroyWindow(sdlWindow);
@@ -120,19 +143,24 @@ void closeSDL() {
 }
 
 void updateTexturePixels() {
+	sdlTexturePixels = NULL;
 	int realPointCount = getRealPointCount();
 	int imagPointCount = getImagPointCount();
+
+	SDL_QueryTexture(sdlTexture, &sdlTextureFormat, NULL, &sdlTextureWidth, &sdlTextureHeight);
 	
 	SDL_LockTexture(sdlTexture, NULL, (void**) &sdlTexturePixels, &sdlTexturePitch);
-	SDL_PixelFormat* mappingFormat = SDL_AllocFormat(SDL_GetWindowPixelFormat(sdlWindow));
+	//SDL_PixelFormat* mappingFormat = SDL_AllocFormat(SDL_GetWindowPixelFormat(sdlWindow));
+	SDL_PixelFormat* mappingFormat = SDL_AllocFormat(sdlTextureFormat);
 	double mandPrecission = getPrecission();
 	if (sdlTexturePixels) {
 		for (int y = 0; y < imagPointCount; y++) {
 			for (int x = 0; x < realPointCount; x++) {
+				// todo Map colorValue
 				Uint8 colorValue = getMandelbrotIterCount(mandRealMin + (x * mandPrecission), mandImagMax - (y * mandPrecission));
 				/*Uint8 colorValue = getMandelbrotIterCount(_LCbuild(x / (SCREEN_WIDTH / (realBorders[1] - realBorders[0])) + realBorders[0],
 																y / (SCREEN_HEIGHT / (imagBorders[1] - imagBorders[0])) + imagBorders[0]));*/
-				sdlTexturePixels[y * sdlTexturePitch / sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorValue, colorValue, colorValue);
+				sdlTexturePixels[y * sdlTexturePitch / sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorValue*4, colorValue*4, colorValue*4);
 			}
 		}
 	}
@@ -160,6 +188,42 @@ int main()
 				if (event.type == SDL_QUIT){
 					quit = true;
 				}
+				else if (event.type == SDL_KEYDOWN)
+				{
+					//Select surfaces based on key press
+					switch (event.key.keysym.sym)
+					{
+					case SDLK_KP_PLUS:
+						zoomIn(15);
+						updateTexturePixels();
+						break;
+
+					case SDLK_KP_MINUS:
+						zoomOut(15);
+						updateTexturePixels();
+						break;
+
+					case SDLK_RIGHT:
+						slide(15, 0);
+						updateTexturePixels();
+						break;
+
+					case SDLK_LEFT:
+						slide(-15, 0);
+						updateTexturePixels();
+						break;
+
+					case SDLK_UP:
+						slide(0, 15);
+						updateTexturePixels();
+						break;
+
+					case SDLK_DOWN:
+						slide(0, -15);
+						updateTexturePixels();
+						break;
+					}
+				}
 			}
 			//Clear screen
 			SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 0xFF);
@@ -167,13 +231,19 @@ int main()
 
 			//Render stick figure
 			//sdlTexture.render((SCREEN_WIDTH - sdlTexture.getWidth()) / 2, (SCREEN_HEIGHT - sdlTexture.getHeight()) / 2);
-			SDL_Rect centerQuad = { 
+			/*SDL_Rect centerQuad = { 
 				(SCREEN_WIDTH - getRealPointCount()) / 2, 
 				(SCREEN_HEIGHT - getImagPointCount()) / 2,  
 				getRealPointCount(), 
-				getImagPointCount() };
-
+				getImagPointCount() };*/
+			SDL_Rect centerQuad = {
+				(SCREEN_WIDTH - sdlTextureWidth) / 2,
+				(SCREEN_HEIGHT - sdlTextureHeight) / 2,
+				sdlTextureWidth,
+				sdlTextureHeight };
+			//SDL_Rect centerQuad = { 0,0,sdlTextureWidth,sdlTextureHeight };
 			SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, &centerQuad);
+			//SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
 
 			//Update screen
 			SDL_RenderPresent(sdlRenderer);
