@@ -21,21 +21,21 @@ int getMandelbrotIterCount(double real, double imag)
 }
 
 
-_Lcomplex addLComplex(_Lcomplex z1, _Lcomplex z2) {
-	return _LCbuild(creall(z1) + creall(z2), cimagl(z1) + cimagl(z2));
-
-}
-
-int getMandelbrotIterCount_LC(_Lcomplex c)
-{
-	_C_ldouble_complex c0 = c;
-	int iter_count = 0;
-	while (iter_count < MAND_MAX_ITER) {
-		if (cabsl(c) >= 2.0) {
-			break;
-		}
-		iter_count++;
-		c = addLComplex(_LCmulcc(c, c), c0);
-	}
-	return iter_count;
-}
+//_Lcomplex addLComplex(_Lcomplex z1, _Lcomplex z2) {
+//	return _LCbuild(creall(z1) + creall(z2), cimagl(z1) + cimagl(z2));
+//
+//}
+//
+//int getMandelbrotIterCount_LC(_Lcomplex c)
+//{
+//	_C_ldouble_complex c0 = c;
+//	int iter_count = 0;
+//	while (iter_count < MAND_MAX_ITER) {
+//		if (cabsl(c) >= 2.0) {
+//			break;
+//		}
+//		iter_count++;
+//		c = addLComplex(_LCmulcc(c, c), c0);
+//	}
+//	return iter_count;
+//}

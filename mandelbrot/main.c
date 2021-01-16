@@ -131,7 +131,7 @@ void closeSDL() {
 		sdlTexture = NULL;
 	}
 	sdlTexturePixels = NULL;
-	sdlTextureFormat = NULL;
+	sdlTextureFormat = 0;
 	sdlTexturePitch = 0;
 	sdlTextureWidth = 0;
 	sdlTextureHeight = 0;
@@ -158,12 +158,19 @@ void updateTexturePixels() {
 			for (int x = 0; x < realPointCount; x++) {
 				// todo Map colorValue
 				Uint8 colorValue = getMandelbrotIterCount(mandRealMin + (x * mandPrecission), mandImagMax - (y * mandPrecission));
-				/*Uint8 colorValue = getMandelbrotIterCount(_LCbuild(x / (SCREEN_WIDTH / (realBorders[1] - realBorders[0])) + realBorders[0],
-																y / (SCREEN_HEIGHT / (imagBorders[1] - imagBorders[0])) + imagBorders[0]));*/
-				sdlTexturePixels[y * sdlTexturePitch / sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorValue*4, colorValue*4, colorValue*4);
+				if (colorValue == MAND_MAX_ITER) {
+					colorValue = 0;
+				}
+				else {
+					colorValue *= 255 / MAND_MAX_ITER;
+				}
+				sdlTexturePixels[y * sdlTexturePitch / sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorValue, colorValue, colorValue);
 			}
 		}
 	}
+	realPointCount = 0;
+	imagPointCount = 0;
+	mandPrecission = 0;
 	SDL_UnlockTexture(sdlTexture);
 	SDL_FreeFormat(mappingFormat);
 }
