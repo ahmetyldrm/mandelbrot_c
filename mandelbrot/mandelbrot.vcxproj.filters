@@ -21,16 +21,10 @@
     <ClCompile Include="test.c">
       <Filter>Kaynak Dosyalar</Filter>
     </ClCompile>
-    <ClCompile Include="mandelbrot.c">
-      <Filter>Kaynak Dosyalar</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>Üst Bilgi Dosyaları</Filter>
-    </ClInclude>
-    <ClInclude Include="mandelbrot.h">
-      <Filter>Kaynak Dosyalar</Filter>
     </ClInclude>
     <ClInclude Include="main.h">
       <Filter>Üst Bilgi Dosyaları</Filter>

@@ -4,21 +4,20 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <SDL.h> 
-#include "main.h"
-#include "mandelbrot.h"
+//#include "main.h"
+//#include "mandelbrot.h"
 
 //#define MAXITER 255
 
 #define SCREEN_WIDTH 1200
 #define SCREEN_HEIGHT 700
 
+Uint32 MAND_MAX_ITER = 255;
+
 double mandRealMin = -2.2;
 double mandRealMax = 1.0;
 double mandImagMin = -1.2;
 double mandImagMax = 1.2;
-
-bool initSDL();
-void closeSDL();
 
 SDL_Window*   sdlWindow   = NULL;
 SDL_Renderer* sdlRenderer = NULL;
@@ -30,10 +29,40 @@ Uint32 sdlTextureFormat = 0;
 int sdlTextureWidth  = 0;
 int sdlTextureHeight = 0;
 
+bool initSDL();
+void closeSDL();
+void updateTexturePixels();
+
+int getMandelbrotIterCount(double real, double imag);
+double getPrecision();
+int getRealPointCount();
+int getImagPointCount();
+void zoomIn(int zoomfactor);
+void zoomOut(int zoomfactor);
+void slide(int x, int y);
+
 //___________________________________
 //Mandelbrot functions
 
-double getPrecission() {
+int getMandelbrotIterCount(double real, double imag)
+{
+	double real0 = real;
+	double imag0 = imag;
+	Uint32 iter_count = 0;
+	double real_temp = 0.0;
+
+	while (iter_count < MAND_MAX_ITER) {
+		if ((real * real) + (imag * imag) >= 4.0) {
+			break;
+		}
+		iter_count++;
+		real_temp = real;
+		real = (real * real) - (imag * imag) + real0;
+		imag = 2 * real_temp * imag + imag0;
+	}
+	return iter_count;
+}
+double getPrecision() {
 	double screenScale = (double)SCREEN_WIDTH / SCREEN_HEIGHT;
 	double mandelScale = (mandRealMax - mandRealMin) / (mandImagMax - mandImagMin);
 	if (screenScale >= mandelScale) {
@@ -42,33 +71,33 @@ double getPrecission() {
 	return (mandRealMax - mandRealMin) / SCREEN_WIDTH;
 }
 int getRealPointCount() {
-	return (int)((mandRealMax - mandRealMin) / getPrecission());
+	return (int)((mandRealMax - mandRealMin) / getPrecision());
 }
 int getImagPointCount() {
-	return (int)((mandImagMax - mandImagMin) / getPrecission());
+	return (int)((mandImagMax - mandImagMin) / getPrecision());
 }
 void zoomIn(int zoomfactor) {
-	double precission = getPrecission();
+	double precision = getPrecision();
 	double mandelScale = (mandRealMax - mandRealMin) / (mandImagMax - mandImagMin);
-	mandRealMin += zoomfactor * precission * mandelScale;
-	mandRealMax -= zoomfactor * precission * mandelScale;
-	mandImagMin += zoomfactor * precission;
-	mandImagMax -= zoomfactor * precission;
+	mandRealMin += zoomfactor * precision * mandelScale;
+	mandRealMax -= zoomfactor * precision * mandelScale;
+	mandImagMin += zoomfactor * precision;
+	mandImagMax -= zoomfactor * precision;
 }
 void zoomOut(int zoomfactor) {
-	double precission = getPrecission();
+	double precision = getPrecision();
 	double mandelScale = (mandRealMax - mandRealMin) / (mandImagMax - mandImagMin);
-	mandRealMin -= zoomfactor * precission * mandelScale;
-	mandRealMax += zoomfactor * precission * mandelScale;
-	mandImagMin -= zoomfactor * precission;
-	mandImagMax += zoomfactor * precission;
+	mandRealMin -= zoomfactor * precision * mandelScale;
+	mandRealMax += zoomfactor * precision * mandelScale;
+	mandImagMin -= zoomfactor * precision;
+	mandImagMax += zoomfactor * precision;
 }
 void slide(int x, int y) {
-	double precission = getPrecission();
-	mandRealMin += x * precission;
-	mandRealMax += x * precission;
-	mandImagMin += y * precission;
-	mandImagMax += y * precission;
+	double precision = getPrecision();
+	mandRealMin += x * precision;
+	mandRealMax += x * precision;
+	mandImagMin += y * precision;
+	mandImagMax += y * precision;
 }
 
 //___________________________________
@@ -126,12 +155,12 @@ void closeSDL() {
 	mandImagMax = 0;
 	mandImagMin = 0;
 	//Destroy texture
-	if (sdlTexture != NULL){
+	if (sdlTexture != NULL) {
 		SDL_DestroyTexture(sdlTexture);
 		sdlTexture = NULL;
 	}
 	sdlTexturePixels = NULL;
-	sdlTextureFormat = NULL;
+	sdlTextureFormat = 0;
 	sdlTexturePitch = 0;
 	sdlTextureWidth = 0;
 	sdlTextureHeight = 0;
@@ -141,7 +170,6 @@ void closeSDL() {
 	sdlWindow = NULL;
 	sdlRenderer = NULL;
 }
-
 void updateTexturePixels() {
 	sdlTexturePixels = NULL;
 	int realPointCount = getRealPointCount();
@@ -152,20 +180,36 @@ void updateTexturePixels() {
 	SDL_LockTexture(sdlTexture, NULL, (void**) &sdlTexturePixels, &sdlTexturePitch);
 	//SDL_PixelFormat* mappingFormat = SDL_AllocFormat(SDL_GetWindowPixelFormat(sdlWindow));
 	SDL_PixelFormat* mappingFormat = SDL_AllocFormat(sdlTextureFormat);
-	double mandPrecission = getPrecission();
+	double mandPrecision = getPrecision();
 	if (sdlTexturePixels) {
 		for (int y = 0; y < imagPointCount; y++) {
 			for (int x = 0; x < realPointCount; x++) {
 				// todo Map colorValue
-				Uint8 colorValue = getMandelbrotIterCount(mandRealMin + (x * mandPrecission), mandImagMax - (y * mandPrecission));
-				/*Uint8 colorValue = getMandelbrotIterCount(_LCbuild(x / (SCREEN_WIDTH / (realBorders[1] - realBorders[0])) + realBorders[0],
-																y / (SCREEN_HEIGHT / (imagBorders[1] - imagBorders[0])) + imagBorders[0]));*/
-				sdlTexturePixels[y * sdlTexturePitch / sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorValue*4, colorValue*4, colorValue*4);
+				Uint32 colorValue = getMandelbrotIterCount(mandRealMin + (x * mandPrecision), mandImagMax - (y * mandPrecision));
+				if (colorValue == MAND_MAX_ITER) {
+					colorValue = 0;
+				}
+				else {
+					colorValue = colorValue * 255 / MAND_MAX_ITER;
+				}
+				sdlTexturePixels[y * sdlTexturePitch / sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorValue, colorValue, colorValue);
 			}
 		}
 	}
+	realPointCount = 0;
+	imagPointCount = 0;
+	mandPrecision = 0;
 	SDL_UnlockTexture(sdlTexture);
 	SDL_FreeFormat(mappingFormat);
+}
+
+void printCoords() {
+	printf("______________________________\n");
+	printf("reel min = %.16lf\n", mandRealMin);
+	printf("reel max = %.16lf\n", mandRealMax);
+	printf("imag min = %.16lf\n", mandImagMin);
+	printf("imag max = %.16lf\n", mandImagMax);
+	printf("______________________________\n");
 }
 
 int main() 
@@ -194,33 +238,56 @@ int main()
 					switch (event.key.keysym.sym)
 					{
 					case SDLK_KP_PLUS:
-						zoomIn(15);
+						zoomIn(150);
 						updateTexturePixels();
+						printf("precision = %.16lf\n", getPrecision());
 						break;
 
 					case SDLK_KP_MINUS:
-						zoomOut(15);
+						zoomOut(150);
 						updateTexturePixels();
+						printf("precision = %.16lf\n", getPrecision());
 						break;
 
 					case SDLK_RIGHT:
-						slide(15, 0);
+						slide(25, 0);
 						updateTexturePixels();
+						printCoords();
 						break;
 
 					case SDLK_LEFT:
-						slide(-15, 0);
+						slide(-25, 0);
 						updateTexturePixels();
+						printCoords();
 						break;
 
 					case SDLK_UP:
-						slide(0, 15);
+						slide(0, 25);
 						updateTexturePixels();
+						printCoords();
 						break;
 
 					case SDLK_DOWN:
-						slide(0, -15);
+						slide(0, -25);
 						updateTexturePixels();
+						printCoords();
+						break;
+
+					case SDLK_KP_0:
+						if (MAND_MAX_ITER > 64) {
+							MAND_MAX_ITER -= 64;
+						}
+						printf("max iteration = %u\n", MAND_MAX_ITER);
+						break;
+					
+					case SDLK_KP_1:
+						MAND_MAX_ITER += 64;
+						printf("max iteration = %u\n", MAND_MAX_ITER);
+						break;
+
+					case SDLK_SPACE:
+						updateTexturePixels();
+						printf("updated\n");
 						break;
 					}
 				}
