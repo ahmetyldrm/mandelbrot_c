@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="colormap.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="test.c" />
   </ItemGroup>

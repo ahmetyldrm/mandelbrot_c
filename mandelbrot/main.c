@@ -12,12 +12,19 @@
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 
+#define MAND_REAL_MIN -2.5
+#define MAND_REAL_MAX  1.5
+//#define MAND_IMAG_MIN -2.5
+//#define MAND_IMAG_MAX -2.5
+
 Uint32 MAND_MAX_ITER = 255;
 
-double mandRealMin = -2.5;
-double mandRealMax = 2.0;
-double mandImagMin = -1.265;
-double mandImagMax = 1.265;
+double mandRealMin = MAND_REAL_MIN;
+double mandRealMax = MAND_REAL_MAX;
+double mandImagMin = -(double)SCREEN_HEIGHT / SCREEN_WIDTH * (MAND_REAL_MAX - MAND_REAL_MIN) / 2;
+double mandImagMax = (double)SCREEN_HEIGHT / SCREEN_WIDTH * (MAND_REAL_MAX - MAND_REAL_MIN) / 2; // SCREEN_HEIGHT/2 * (mandRealMax - mandRealMin)/SCREEN_WIDTH
+//double mandImagMin = -1.265;
+//double mandImagMax = 1.265; // SCREEN_HEIGHT/2 * (mandRealMax - mandRealMin)/SCREEN_WIDTH
 
 SDL_Window*   sdlWindow   = NULL;
 SDL_Renderer* sdlRenderer = NULL;
