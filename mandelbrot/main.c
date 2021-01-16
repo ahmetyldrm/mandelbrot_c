@@ -9,15 +9,15 @@
 
 //#define MAXITER 255
 
-#define SCREEN_WIDTH 1200
-#define SCREEN_HEIGHT 700
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
 
 Uint32 MAND_MAX_ITER = 255;
 
-double mandRealMin = -2.2;
-double mandRealMax = 1.0;
-double mandImagMin = -1.2;
-double mandImagMax = 1.2;
+double mandRealMin = -2.5;
+double mandRealMax = 2.0;
+double mandImagMin = -1.265;
+double mandImagMax = 1.265;
 
 SDL_Window*   sdlWindow   = NULL;
 SDL_Renderer* sdlRenderer = NULL;
@@ -45,6 +45,7 @@ void slide(int x, int y);
 //Mandelbrot functions
 
 int getMandelbrotIterCount(double real, double imag)
+//Retuns a value between 0 and MAND_MAX_ITER-1
 {
 	double real0 = real;
 	double imag0 = imag;
@@ -181,8 +182,8 @@ void _printTextureSize() {
 }
 void updateTexturePixels() {
 	sdlTexturePixels = NULL;
-	//int realPointCount = getRealPointCount();
-	//int imagPointCount = getImagPointCount();
+	Uint8 colorValue[3] = { 0, 0, 0 };
+	Uint32 iterCount = 0;
 
 	SDL_QueryTexture(sdlTexture, &sdlTextureFormat, NULL, &sdlTextureWidth, &sdlTextureHeight);
 	_printTextureSize();
@@ -192,25 +193,55 @@ void updateTexturePixels() {
 	SDL_PixelFormat* mappingFormat = SDL_AllocFormat(sdlTextureFormat);
 	double mandPrecision = getPrecision();
 	if (sdlTexturePixels) {
-		//for (Uint16 y = 0; y < imagPointCount; y++) {
 		for (Uint16 y = 0; y < sdlTextureHeight; y++) {
-			//for (Uint16 x = 0; x < realPointCount; x++) {
 			for (Uint16 x = 0; x < sdlTextureWidth; x++) {
-				// todo Map colorValue
-				Uint32 colorValue = getMandelbrotIterCount(mandRealMin + (x * mandPrecision), mandImagMax - (y * mandPrecision));
-				if (colorValue == MAND_MAX_ITER) {
-					colorValue = 0;
+				// todo Map colorValue				
+				iterCount = getMandelbrotIterCount(mandRealMin + (x * mandPrecision), mandImagMax - (y * mandPrecision));
+				if (iterCount == MAND_MAX_ITER) {
+					colorValue[0] = 0;
+					colorValue[1] = 0;
+					colorValue[2] = 0;
+				}
+				else if (iterCount < iterCount / 6) {
+					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
+					colorValue[1] = iterCount * 255 / MAND_MAX_ITER;
+					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;
+				}
+				else if (iterCount < 2* iterCount / 6) {
+					colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
+					colorValue[1] = 255 - iterCount * 255 / MAND_MAX_ITER;
+					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;
+				}
+				else if (iterCount < 3 * iterCount / 6) {
+					colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
+					colorValue[1] = iterCount * 255 / MAND_MAX_ITER;
+					colorValue[2] = 255 - iterCount * 255 / MAND_MAX_ITER;
+				}
+				else if (iterCount < 4 * iterCount / 6) {
+					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
+					colorValue[1] = 255 - iterCount * 255 / MAND_MAX_ITER;
+					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;
+				}
+				else if (iterCount < 5 * iterCount / 6) {
+					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
+					colorValue[1] = iterCount * 255 / MAND_MAX_ITER;
+					colorValue[2] = 255 - iterCount * 255 / MAND_MAX_ITER;
 				}
 				else {
-					colorValue = colorValue * 255 / MAND_MAX_ITER;
+					colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
+					colorValue[1] = 255 - iterCount * 255 / MAND_MAX_ITER;
+					colorValue[2] = 255 - iterCount * 255 / MAND_MAX_ITER;
 				}
-				sdlTexturePixels[y * sdlTexturePitch / sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorValue, colorValue, colorValue);
+				//colorValue = colorValue * 255 / MAND_MAX_ITER;
+				sdlTexturePixels[y * sdlTexturePitch / sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorValue[0], colorValue[1], colorValue[2]);
 			}
 		}
 	}
 	//realPointCount = 0;
 	//imagPointCount = 0;
 	mandPrecision = 0;
+	iterCount = 0;
+	*colorValue = NULL;
 	SDL_UnlockTexture(sdlTexture);
 	SDL_FreeFormat(mappingFormat);
 }
@@ -289,12 +320,12 @@ int main()
 						if (MAND_MAX_ITER > 64) {
 							MAND_MAX_ITER -= 64;
 						}
-						printf("max iteration = %u\n", MAND_MAX_ITER);
+						printf("max iterations = %u\n", MAND_MAX_ITER+1);
 						break;
 					
 					case SDLK_KP_1:
 						MAND_MAX_ITER += 64;
-						printf("max iteration = %u\n", MAND_MAX_ITER);
+						printf("max iterations = %u\n", MAND_MAX_ITER+1);
 						break;
 
 					case SDLK_SPACE:
