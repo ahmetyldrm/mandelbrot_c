@@ -156,9 +156,9 @@ void closeSDL() {
 	mandImagMin = 0;
 	//Destroy texture
 	if (sdlTexture != NULL) {
-		SDL_DestroyTexture(sdlTexture);
-		sdlTexture = NULL;
+		SDL_DestroyTexture(sdlTexture);		
 	}
+	sdlTexture = NULL;
 	sdlTexturePixels = NULL;
 	sdlTextureFormat = 0;
 	sdlTexturePitch = 0;
@@ -170,20 +170,32 @@ void closeSDL() {
 	sdlWindow = NULL;
 	sdlRenderer = NULL;
 }
+
+void _printTextureSize() {
+	printf("______________________________\n");
+	printf("texture width = %d\n", sdlTextureWidth);
+	printf("texture height = %d\n", sdlTextureHeight);
+	printf("real point = %d\n", getRealPointCount());
+	printf("imag point = %d\n", getImagPointCount());
+	printf("______________________________\n");
+}
 void updateTexturePixels() {
 	sdlTexturePixels = NULL;
-	int realPointCount = getRealPointCount();
-	int imagPointCount = getImagPointCount();
+	//int realPointCount = getRealPointCount();
+	//int imagPointCount = getImagPointCount();
 
 	SDL_QueryTexture(sdlTexture, &sdlTextureFormat, NULL, &sdlTextureWidth, &sdlTextureHeight);
+	_printTextureSize();
 	
 	SDL_LockTexture(sdlTexture, NULL, (void**) &sdlTexturePixels, &sdlTexturePitch);
 	//SDL_PixelFormat* mappingFormat = SDL_AllocFormat(SDL_GetWindowPixelFormat(sdlWindow));
 	SDL_PixelFormat* mappingFormat = SDL_AllocFormat(sdlTextureFormat);
 	double mandPrecision = getPrecision();
 	if (sdlTexturePixels) {
-		for (int y = 0; y < imagPointCount; y++) {
-			for (int x = 0; x < realPointCount; x++) {
+		//for (Uint16 y = 0; y < imagPointCount; y++) {
+		for (Uint16 y = 0; y < sdlTextureHeight; y++) {
+			//for (Uint16 x = 0; x < realPointCount; x++) {
+			for (Uint16 x = 0; x < sdlTextureWidth; x++) {
 				// todo Map colorValue
 				Uint32 colorValue = getMandelbrotIterCount(mandRealMin + (x * mandPrecision), mandImagMax - (y * mandPrecision));
 				if (colorValue == MAND_MAX_ITER) {
@@ -196,14 +208,14 @@ void updateTexturePixels() {
 			}
 		}
 	}
-	realPointCount = 0;
-	imagPointCount = 0;
+	//realPointCount = 0;
+	//imagPointCount = 0;
 	mandPrecision = 0;
 	SDL_UnlockTexture(sdlTexture);
 	SDL_FreeFormat(mappingFormat);
 }
 
-void printCoords() {
+void _printCoords() {
 	printf("______________________________\n");
 	printf("reel min = %.16lf\n", mandRealMin);
 	printf("reel max = %.16lf\n", mandRealMax);
@@ -252,25 +264,25 @@ int main()
 					case SDLK_RIGHT:
 						slide(25, 0);
 						updateTexturePixels();
-						printCoords();
+						_printCoords();
 						break;
 
 					case SDLK_LEFT:
 						slide(-25, 0);
 						updateTexturePixels();
-						printCoords();
+						_printCoords();
 						break;
 
 					case SDLK_UP:
 						slide(0, 25);
 						updateTexturePixels();
-						printCoords();
+						_printCoords();
 						break;
 
 					case SDLK_DOWN:
 						slide(0, -25);
 						updateTexturePixels();
-						printCoords();
+						_printCoords();
 						break;
 
 					case SDLK_KP_0:
