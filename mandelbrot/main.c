@@ -14,17 +14,15 @@
 
 #define MAND_REAL_MIN -2.5
 #define MAND_REAL_MAX  1.5
-//#define MAND_IMAG_MIN -2.5
-//#define MAND_IMAG_MAX -2.5
 
 Uint32 MAND_MAX_ITER = 255;
 
 double mandRealMin = MAND_REAL_MIN;
 double mandRealMax = MAND_REAL_MAX;
 double mandImagMin = -(double)SCREEN_HEIGHT / SCREEN_WIDTH * (MAND_REAL_MAX - MAND_REAL_MIN) / 2;
-double mandImagMax = (double)SCREEN_HEIGHT / SCREEN_WIDTH * (MAND_REAL_MAX - MAND_REAL_MIN) / 2; // SCREEN_HEIGHT/2 * (mandRealMax - mandRealMin)/SCREEN_WIDTH
+double mandImagMax = (double)SCREEN_HEIGHT / SCREEN_WIDTH * (MAND_REAL_MAX - MAND_REAL_MIN) / 2; 
 //double mandImagMin = -1.265;
-//double mandImagMax = 1.265; // SCREEN_HEIGHT/2 * (mandRealMax - mandRealMin)/SCREEN_WIDTH
+//double mandImagMax = 1.265;
 
 SDL_Window*   sdlWindow   = NULL;
 SDL_Renderer* sdlRenderer = NULL;
@@ -51,9 +49,8 @@ void slide(int x, int y);
 //___________________________________
 //Mandelbrot functions
 
-int getMandelbrotIterCount(double real, double imag)
 //Retuns a value between 0 and MAND_MAX_ITER-1
-{
+int getMandelbrotIterCount(double real, double imag){
 	double real0 = real;
 	double imag0 = imag;
 	Uint32 iter_count = 0;
@@ -192,44 +189,45 @@ void updateTexturePixels() {
 	Uint8 colorValue[3] = { 0, 0, 0 };
 	Uint32 iterCount = 0;
 
+	//Get texture information
 	SDL_QueryTexture(sdlTexture, &sdlTextureFormat, NULL, &sdlTextureWidth, &sdlTextureHeight);
 	_printTextureSize();
 	
-	SDL_LockTexture(sdlTexture, NULL, (void**) &sdlTexturePixels, &sdlTexturePitch);
-	//SDL_PixelFormat* mappingFormat = SDL_AllocFormat(SDL_GetWindowPixelFormat(sdlWindow));
+	SDL_LockTexture(sdlTexture, NULL, &sdlTexturePixels, &sdlTexturePitch);
+
 	SDL_PixelFormat* mappingFormat = SDL_AllocFormat(sdlTextureFormat);
 	double mandPrecision = getPrecision();
 	if (sdlTexturePixels) {
 		for (Uint16 y = 0; y < sdlTextureHeight; y++) {
 			for (Uint16 x = 0; x < sdlTextureWidth; x++) {
-				// todo Map colorValue				
+				//TODO Map colorValue				
 				iterCount = getMandelbrotIterCount(mandRealMin + (x * mandPrecision), mandImagMax - (y * mandPrecision));
 				if (iterCount == MAND_MAX_ITER) {
 					colorValue[0] = 0;
 					colorValue[1] = 0;
 					colorValue[2] = 0;
 				}
-				else if (iterCount < iterCount / 6) {
+				else if (iterCount < MAND_MAX_ITER / 6) {
 					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
 					colorValue[1] = iterCount * 255 / MAND_MAX_ITER;
 					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;
 				}
-				else if (iterCount < 2* iterCount / 6) {
+				else if (iterCount < 2* MAND_MAX_ITER / 6) {
 					colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
 					colorValue[1] = 255 - iterCount * 255 / MAND_MAX_ITER;
 					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;
 				}
-				else if (iterCount < 3 * iterCount / 6) {
+				else if (iterCount < 3 * MAND_MAX_ITER / 6) {
 					colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
 					colorValue[1] = iterCount * 255 / MAND_MAX_ITER;
 					colorValue[2] = 255 - iterCount * 255 / MAND_MAX_ITER;
 				}
-				else if (iterCount < 4 * iterCount / 6) {
+				else if (iterCount < 4 * MAND_MAX_ITER / 6) {
 					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
 					colorValue[1] = 255 - iterCount * 255 / MAND_MAX_ITER;
 					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;
 				}
-				else if (iterCount < 5 * iterCount / 6) {
+				else if (iterCount < 5 * MAND_MAX_ITER / 6) {
 					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
 					colorValue[1] = iterCount * 255 / MAND_MAX_ITER;
 					colorValue[2] = 255 - iterCount * 255 / MAND_MAX_ITER;
@@ -244,8 +242,6 @@ void updateTexturePixels() {
 			}
 		}
 	}
-	//realPointCount = 0;
-	//imagPointCount = 0;
 	mandPrecision = 0;
 	iterCount = 0;
 	*colorValue = NULL;
@@ -346,19 +342,12 @@ int main()
 			SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 0xFF);
 			SDL_RenderClear(sdlRenderer);
 
-			//Render stick figure
-			//sdlTexture.render((SCREEN_WIDTH - sdlTexture.getWidth()) / 2, (SCREEN_HEIGHT - sdlTexture.getHeight()) / 2);
-			/*SDL_Rect centerQuad = { 
-				(SCREEN_WIDTH - getRealPointCount()) / 2, 
-				(SCREEN_HEIGHT - getImagPointCount()) / 2,  
-				getRealPointCount(), 
-				getImagPointCount() };*/
 			SDL_Rect centerQuad = {
 				(SCREEN_WIDTH - sdlTextureWidth) / 2,
 				(SCREEN_HEIGHT - sdlTextureHeight) / 2,
 				sdlTextureWidth,
 				sdlTextureHeight };
-			//SDL_Rect centerQuad = { 0,0,sdlTextureWidth,sdlTextureHeight };
+
 			SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, &centerQuad);
 			//SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
 
@@ -372,132 +361,3 @@ int main()
 
 	return 0;
 }
-
-
-//int main()
-//{
-//
-//	SDL_Window* window = NULL;
-//	SDL_Surface* screenSurface = NULL;
-//
-//	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-//		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-//	}
-//	else {
-//		window = SDL_CreateWindow("Mandelbrot Set",
-//			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-//			SCREEN_WIDTH, SCREEN_HEIGHT,
-//			SDL_WINDOW_SHOWN);
-//		if (window == NULL) {
-//			printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-//		}
-//		else {
-//			screenSurface = SDL_GetWindowSurface(window);
-//			//SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0, 0, 0));
-//			Uint32* pixels = (Uint32*)screenSurface->pixels;
-//			//pixels[640 * 10 + 10] = SDL_MapRGB(screenSurface->format, 255, 0, 255);
-//
-//			double realBorders[2] = { -2.0, 1.0 };
-//			double imagBorders[2] = { -1.5, 1.5 };
-//
-//			for (int y = 0; y < SCREEN_HEIGHT; y++) {
-//				for (int x = 0; x < SCREEN_WIDTH; x++) {
-//					Uint8 colorValue = getMandelbrotIterCount(x / (SCREEN_WIDTH  / (realBorders[1] - realBorders[0])) + realBorders[0],
-//												y / (SCREEN_HEIGHT / (imagBorders[1] - imagBorders[0])) + imagBorders[0]);
-//					/*Uint8 colorValue = getMandelbrotIterCount(_LCbuild(x / (SCREEN_WIDTH / (realBorders[1] - realBorders[0])) + realBorders[0],
-//																	y / (SCREEN_HEIGHT / (imagBorders[1] - imagBorders[0])) + imagBorders[0]));*/
-//					pixels[y * SCREEN_WIDTH + x] = SDL_MapRGB(screenSurface->format, colorValue, colorValue, colorValue);
-//				}
-//			}
-//
-//			SDL_Event event;
-//			bool running = true;
-//			while (running) {
-//				while (SDL_PollEvent(&event) != 0)
-//				{
-//					//User requests quit
-//					if (event.type == SDL_QUIT)
-//					{
-//						running = false;
-//					}
-//				}
-//				SDL_UpdateWindowSurface(window);
-//				SDL_Delay(50);
-//			}
-//			
-//			SDL_DestroyWindow(window);
-//			pixels = NULL;
-//			SDL_Quit();
-//
-//			return 0;
-//		}
-//	}
-//}
-//int main(int argc, char* args[])
-//{
-//	//Start up SDL and create window
-//	if (!init())
-//	{
-//		printf("Failed to initialize!\n");
-//	}
-//	else
-//	{
-//		//Load media
-//		if (!loadMedia())
-//		{
-//			printf("Failed to load media!\n");
-//		}
-//		else
-//		{
-//			//Main loop flag
-//			bool quit = false;
-//
-//			//Event handler
-//			SDL_Event e;
-//
-//			//While application is running
-//			while (!quit)
-//			{
-//				//Handle events on queue
-//				while (SDL_PollEvent(&e) != 0)
-//				{
-//					//User requests quit
-//					if (e.type == SDL_QUIT)
-//					{
-//						quit = true;
-//					}
-//				}
-//
-//				//Clear screen
-//				SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-//				SDL_RenderClear(gRenderer);
-//
-//				//Copy frame from buffer
-//				gStreamingTexture.lockTexture();
-//				gStreamingTexture.copyPixels(gDataStream.getBuffer());
-//				gStreamingTexture.unlockTexture();
-//
-//				//Render frame
-//				gStreamingTexture.render((SCREEN_WIDTH - gStreamingTexture.getWidth()) / 2, (SCREEN_HEIGHT - gStreamingTexture.getHeight()) / 2);
-//
-//				//Update screen
-//				SDL_RenderPresent(gRenderer);
-//			}
-//		}
-//	}
-//
-//	//Free resources and close SDL
-//	close();
-//
-//	return 0;
-//}
-// Programı çalıştır: Ctrl + F5 veya Hata Ayıkla > Hata Ayıklamadan Başlat menüsü
-// Programda hata ayıkla: F5 veya Hata Ayıkla > Hata Ayıklamayı Başlat menüsü
-
-// Kullanmaya Başlama İpuçları: 
-//   1. Dosyaları eklemek/yönetmek için Çözüm Gezgini penceresini kullanın
-//   2. Kaynak denetimine bağlanmak için Takım Gezgini penceresini kullanın
-//   3. Derleme çıktısını ve diğer iletileri görmek için Çıktı penceresini kullanın
-//   4. Hataları görüntülemek için Hata Listesi penceresini kullanın
-//   5. Yeni kod dosyaları oluşturmak için Projeye Git > Yeni Öğe ekle veya varolan kod dosyalarını projeye eklemek için Proje > Var Olan Öğeyi Ekle adımlarını izleyin
-//   6. Bu projeyi daha sonra yeniden açmak için Dosya > Aç > Proje'ye gidip .sln uzantılı dosyayı seçin
