@@ -208,14 +208,18 @@ void updateTexturePixels() {
 					colorValue[2] = 0;
 				}
 				else if (iterCount < MAND_MAX_ITER / 6) {
+					/*colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
+					colorValue[1] = 255 - iterCount * 255 / MAND_MAX_ITER;
+					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;*/
+					colorValue[0] = 0;
+					colorValue[1] = 0;
+					colorValue[2] = 0;
+				}
+				else if (iterCount < 2* MAND_MAX_ITER / 6) {
 					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
 					colorValue[1] = iterCount * 255 / MAND_MAX_ITER;
 					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;
-				}
-				else if (iterCount < 2* MAND_MAX_ITER / 6) {
-					colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
-					colorValue[1] = 255 - iterCount * 255 / MAND_MAX_ITER;
-					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;
+					
 				}
 				else if (iterCount < 3 * MAND_MAX_ITER / 6) {
 					colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
@@ -223,9 +227,9 @@ void updateTexturePixels() {
 					colorValue[2] = 255 - iterCount * 255 / MAND_MAX_ITER;
 				}
 				else if (iterCount < 4 * MAND_MAX_ITER / 6) {
-					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
+					colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
 					colorValue[1] = 255 - iterCount * 255 / MAND_MAX_ITER;
-					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;
+					colorValue[2] = 255 - iterCount * 255 / MAND_MAX_ITER;
 				}
 				else if (iterCount < 5 * MAND_MAX_ITER / 6) {
 					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
@@ -233,9 +237,9 @@ void updateTexturePixels() {
 					colorValue[2] = 255 - iterCount * 255 / MAND_MAX_ITER;
 				}
 				else {
-					colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
+					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
 					colorValue[1] = 255 - iterCount * 255 / MAND_MAX_ITER;
-					colorValue[2] = 255 - iterCount * 255 / MAND_MAX_ITER;
+					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;
 				}
 				//colorValue = colorValue * 255 / MAND_MAX_ITER;
 				sdlTexturePixels[y * sdlTexturePitch / sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorValue[0], colorValue[1], colorValue[2]);
