@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <SDL.h> 
+#include "colormap.h"
 //#include "main.h"
 //#include "mandelbrot.h"
 
