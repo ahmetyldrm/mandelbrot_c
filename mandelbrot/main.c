@@ -160,11 +160,6 @@ bool initSDL(){
 					success = false;
 				}
 				else{
-					//char* hexColorArray[256][7] = { {0} };
-					
-					//hexColorArray = getHexArrayFromFile(COLORMAP_FILE);
-					//hexColorArray = (char**)malloc(256 * sizeof(char*));
-					
 					hexColorArray = getHexArrayFromFile(COLORMAP_FILE);
 					if (hexColorArray == NULL) {
 						printf("Unable to create color array!\n");
