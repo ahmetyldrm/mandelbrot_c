@@ -3,12 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include <SDL.h> 
 #include "colormap.h"
 //#include "main.h"
 //#include "mandelbrot.h"
 
-//#define MAXITER 255
+#define COLORMAP_FILE "gradient.gradient" 
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
@@ -16,12 +17,14 @@
 #define MAND_REAL_MIN -2.5
 #define MAND_REAL_MAX  1.5
 
-Uint32 MAND_MAX_ITER = 255;
+typedef struct Complex { double real, imag; } Complex;
+
+Uint32 MAND_MAX_ITER = 127;
 
 double mandRealMin = MAND_REAL_MIN;
 double mandRealMax = MAND_REAL_MAX;
 double mandImagMin = -(double)SCREEN_HEIGHT / SCREEN_WIDTH * (MAND_REAL_MAX - MAND_REAL_MIN) / 2;
-double mandImagMax = (double)SCREEN_HEIGHT / SCREEN_WIDTH * (MAND_REAL_MAX - MAND_REAL_MIN) / 2; 
+double mandImagMax = (double)SCREEN_HEIGHT / SCREEN_WIDTH * (MAND_REAL_MAX - MAND_REAL_MIN) / 2;
 //double mandImagMin = -1.265;
 //double mandImagMax = 1.265;
 
@@ -35,6 +38,8 @@ Uint32 sdlTextureFormat = 0;
 int sdlTextureWidth  = 0;
 int sdlTextureHeight = 0;
 
+char** hexColorArray;
+
 bool initSDL();
 void closeSDL();
 void updateTexturePixels();
@@ -46,6 +51,7 @@ int getImagPointCount();
 void zoomIn(int zoomfactor);
 void zoomOut(int zoomfactor);
 void slide(int x, int y);
+Complex screenXYtoComplex(int screenX, int screenY, double precision);
 
 //___________________________________
 //Mandelbrot functions
@@ -105,6 +111,12 @@ void slide(int x, int y) {
 	mandImagMin += y * precision;
 	mandImagMax += y * precision;
 }
+Complex screenXYtoComplex(int screenX, int screenY, double precision) {
+	Complex c;
+	c.real = mandRealMin + (screenX * precision);
+	c.imag = mandImagMax - (screenY * precision);
+	return c;
+}
 
 //___________________________________
 //SDL functions
@@ -145,10 +157,20 @@ bool initSDL(){
 					getRealPointCount(), getImagPointCount());
 				if (sdlTexture == NULL){
 					printf("Unable to create blank texture! SDL Error: %s\n", SDL_GetError());
+					success = false;
 				}
-				//else{
-					//SDL_QueryTexture(sdlTexture, &sdlTextureFormat, NULL, &sdlTextureWidth, &sdlTextureHeight);
-				//}
+				else{
+					//char* hexColorArray[256][7] = { {0} };
+					
+					//hexColorArray = getHexArrayFromFile(COLORMAP_FILE);
+					//hexColorArray = (char**)malloc(256 * sizeof(char*));
+					
+					hexColorArray = getHexArrayFromFile(COLORMAP_FILE);
+					if (hexColorArray == NULL) {
+						printf("Unable to create color array!\n");
+						success = false;
+					}
+				}
 			}
 		}
 	}
@@ -160,11 +182,16 @@ void closeSDL() {
 	mandRealMax = 0;
 	mandImagMax = 0;
 	mandImagMin = 0;
+	if (hexColorArray != NULL) {
+		freeHexArray(hexColorArray);
+		hexColorArray = NULL;
+	}
+	
 	//Destroy texture
 	if (sdlTexture != NULL) {
 		SDL_DestroyTexture(sdlTexture);		
-	}
-	sdlTexture = NULL;
+		sdlTexture = NULL;
+	}	
 	sdlTexturePixels = NULL;
 	sdlTextureFormat = 0;
 	sdlTexturePitch = 0;
@@ -185,9 +212,10 @@ void _printTextureSize() {
 	printf("imag point = %d\n", getImagPointCount());
 	printf("______________________________\n");
 }
+
 void updateTexturePixels() {
 	sdlTexturePixels = NULL;
-	Uint8 colorValue[3] = { 0, 0, 0 };
+	
 	Uint32 iterCount = 0;
 
 	//Get texture information
@@ -199,57 +227,33 @@ void updateTexturePixels() {
 	SDL_PixelFormat* mappingFormat = SDL_AllocFormat(sdlTextureFormat);
 	double mandPrecision = getPrecision();
 	if (sdlTexturePixels) {
-		for (Uint16 y = 0; y < sdlTextureHeight; y++) {
-			for (Uint16 x = 0; x < sdlTextureWidth; x++) {
-				//TODO Map colorValue				
-				iterCount = getMandelbrotIterCount(mandRealMin + (x * mandPrecision), mandImagMax - (y * mandPrecision));
+		for (int y = 0; y < sdlTextureHeight; y++) {
+			for (int x = 0; x < sdlTextureWidth; x++) {
+				Complex cx = screenXYtoComplex(x, y, mandPrecision);
+				RGB_Color colorRGB;
+
+				// Get iteration count
+				iterCount = getMandelbrotIterCount(cx.real, cx.imag);
+				
+				// Get pixel value based on iter count
 				if (iterCount == MAND_MAX_ITER) {
-					colorValue[0] = 0;
-					colorValue[1] = 0;
-					colorValue[2] = 0;
-				}
-				else if (iterCount < MAND_MAX_ITER / 6) {
-					/*colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
-					colorValue[1] = 255 - iterCount * 255 / MAND_MAX_ITER;
-					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;*/
-					colorValue[0] = 0;
-					colorValue[1] = 0;
-					colorValue[2] = 0;
-				}
-				else if (iterCount < 2* MAND_MAX_ITER / 6) {
-					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
-					colorValue[1] = iterCount * 255 / MAND_MAX_ITER;
-					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;
-					
-				}
-				else if (iterCount < 3 * MAND_MAX_ITER / 6) {
-					colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
-					colorValue[1] = iterCount * 255 / MAND_MAX_ITER;
-					colorValue[2] = 255 - iterCount * 255 / MAND_MAX_ITER;
-				}
-				else if (iterCount < 4 * MAND_MAX_ITER / 6) {
-					colorValue[0] = iterCount * 255 / MAND_MAX_ITER;
-					colorValue[1] = 255 - iterCount * 255 / MAND_MAX_ITER;
-					colorValue[2] = 255 - iterCount * 255 / MAND_MAX_ITER;
-				}
-				else if (iterCount < 5 * MAND_MAX_ITER / 6) {
-					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
-					colorValue[1] = iterCount * 255 / MAND_MAX_ITER;
-					colorValue[2] = 255 - iterCount * 255 / MAND_MAX_ITER;
+					colorRGB.r = 0; colorRGB.g = 0; colorRGB.b = 0;
 				}
 				else {
-					colorValue[0] = 255 - iterCount * 255 / MAND_MAX_ITER;
-					colorValue[1] = 255 - iterCount * 255 / MAND_MAX_ITER;
-					colorValue[2] = iterCount * 255 / MAND_MAX_ITER;
+					int mappedValue = (int)getMappedValue(iterCount, 0, MAND_MAX_ITER, 0, CURRENT_HEX_ARRAY_LENGTH - 1);
+					char* colorHex = hexColorArray[mappedValue];
+					colorRGB = getRGBfromHexStr(colorHex);
+					if (colorRGB.errorFlag) {
+						printf("Could not convert hex to rgb: %s\n", colorHex);
+					}
 				}
-				//colorValue = colorValue * 255 / MAND_MAX_ITER;
-				sdlTexturePixels[y * sdlTexturePitch / sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorValue[0], colorValue[1], colorValue[2]);
+				// Set pixel value
+				sdlTexturePixels[y * sdlTexturePitch / (int)sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorRGB.r, colorRGB.g, colorRGB.b);
 			}
 		}
 	}
 	mandPrecision = 0;
 	iterCount = 0;
-	*colorValue = NULL;
 	SDL_UnlockTexture(sdlTexture);
 	SDL_FreeFormat(mappingFormat);
 }

@@ -1,15 +1,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include "colormap.h"
 
-#define LENGHTOF(x)  (sizeof(x) / sizeof((x)[0]))
+//#define LENGHTOF(x)  (sizeof(x) / sizeof((x)[0]))
 
-
+CURRENT_HEX_ARRAY_LENGTH = 0;
 
 //Converts hex string to RGB_Color
 RGB_Color getRGBfromHexStr(char* hexStr) {
 	RGB_Color color;
+	color.r = 0;
+	color.g = 0;
+	color.b = 0;
+	color.errorFlag = false;
 	char tempStr[3];
 
 	if (strlen(hexStr) != 6) {
@@ -38,60 +43,51 @@ RGB_Color getRGBfromHexStr(char* hexStr) {
 	return color;
 }
 
-_hexString* _allocateHexArray(size_t arraysize) {
-	//_hexString _tempstr = "";
-	_hexString* _hexArray = (_hexString*)malloc(arraysize * sizeof(_hexString));
-	if (_hexArray == NULL) {
-		printf("Could not allocate memory for _hexArray\n");
-		return NULL;
-	}	
-	return _hexArray;	
-}
-
-_hexString* _reallocateHexArray(_hexString* _hexarray, size_t arraysize) {
-	//_hexString _tempstr = "";
-	_hexString* _newhexarray = (_hexString*)realloc(_hexarray, arraysize * sizeof(_hexString));
-	if (_newhexarray == NULL) {
-		printf("Could not reallocate memory for _newhexarray\n");
-		return NULL;
+void freeHexArray(char** hexarray) {
+	for (int i = 0; i < CURRENT_HEX_ARRAY_LENGTH; i++) {
+		if (hexarray[i] != NULL) {
+			free(hexarray[i]);
+			hexarray[i] = NULL;
+			printf("hexarray[%d] freed\n", i);
+		}
 	}
-	_hexarray = NULL;
-	return _newhexarray;
-}
-
-void _freeHexArray(_hexString* _hexarray) {
-	if (_hexarray != NULL) {
-		free(_hexarray);
+	if (hexarray != NULL) {
+		free(hexarray);
+		hexarray = NULL;
+		printf("--> hexarray freed\n");
 	}
 }
 
-_hexString* getHexArrayFromFile(char* filename) {
-	//Must be freed!
-	_hexString* hexArray;
-	_hexString hexStr = "";
-	size_t _arraysize = 1;
+char** getHexArrayFromFile(char* filename) {
+	//Must be freed! Call 'freeHexArray(char** hexarray)'
 
-	hexArray = _allocateHexArray(_arraysize);
-	
+	char** hexArray = malloc(MAX_COLOR_ARRAY_LENGTH * sizeof(char*));
 	if (hexArray == NULL) {
-		printf("Could not initialize hexArray\n");
+		printf("Could not allocated hexArray\n");
 		return NULL;
 	}
+	char hexStr[8] = "";
+
 
 	FILE* fileptr = fopen(filename, "r");
 	if (fileptr == NULL) {
 		printf("Could not open file: '%s'\n", filename);
 		return NULL;
 	}
-	for (int i = 0; fgets(hexStr, 6, fileptr) != NULL; i++) {
+	for (int i = 0; (i < MAX_COLOR_ARRAY_LENGTH) && (fgets(hexStr, 8, fileptr) != NULL); i++) {
 		hexStr[6] = '\0';
-		if (i >= _arraysize) {
-			hexArray = _reallocateHexArray(hexArray, i);
-			_arraysize = i;
+		hexArray[i] = (char*)malloc(HEX_STR_LENGTH * sizeof(char));
+		if (hexArray[i] == NULL) {
+			printf("Could not allocated hexArray[%d]\n", i);
+			return NULL;
 		}
-		*(hexArray[i]) = hexStr;
+		strncpy(hexArray[i], hexStr, HEX_STR_LENGTH * sizeof(char));
 		printf("hexStr = %s\n", hexStr);
+		printf("hexArray[%d] = %s\n", i, hexArray[i]);
+		*hexStr = "";
+		CURRENT_HEX_ARRAY_LENGTH = i + 1;
 	}
+	fclose(fileptr);
 	return hexArray;
 }
 
@@ -99,6 +95,3 @@ float getMappedValue(int _value, int _valuestart, int _valueend, int _mappedstar
 	float result = (_value - _valuestart) * (_mappedend - _mappedstart) / (float)(_valueend - _valuestart) + _mappedstart;
 	return result;
 }
-
-
-//TODO gradient.gradient dosyasýndan rgb verileri çýkart
