@@ -1,4 +1,10 @@
 ﻿
+//TODO code cleanup
+//TODO make mandelbrot.c and h
+//TODO change slide function
+//TODO make iter count interval smaller
+//TODO make colors free of iter count
+//TODO use GNU mpfr library for infinite zoom
 
 #include <stdio.h>
 #include <stdlib.h>
