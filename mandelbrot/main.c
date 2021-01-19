@@ -1,6 +1,6 @@
 ﻿
 //TODO code cleanup
-//TODO make mandelbrot.c and h
+//TODO make mandelbrot.c and h, main.h
 //TODO change slide function
 //TODO make iter count interval smaller
 //TODO make colors free of iter count
