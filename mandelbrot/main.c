@@ -61,6 +61,7 @@ Complex screenXYtoComplex(int screenX, int screenY, double precision);
 
 //___________________________________
 //Mandelbrot functions
+//***********************************
 
 //Retuns a value between 0 and MAND_MAX_ITER-1
 int getMandelbrotIterCount(double real, double imag){
@@ -126,6 +127,7 @@ Complex screenXYtoComplex(int screenX, int screenY, double precision) {
 
 //___________________________________
 //SDL functions
+//***********************************
 
 bool initSDL(){
 	//Initialization flag
@@ -177,7 +179,6 @@ bool initSDL(){
 	}
 	return success;
 }
-
 void closeSDL() {
 	mandRealMin = 0;
 	mandRealMax = 0;
@@ -204,7 +205,6 @@ void closeSDL() {
 	sdlWindow = NULL;
 	sdlRenderer = NULL;
 }
-
 void _printTextureSize() {
 	printf("______________________________\n");
 	printf("texture width = %d\n", sdlTextureWidth);
@@ -213,7 +213,6 @@ void _printTextureSize() {
 	printf("imag point = %d\n", getImagPointCount());
 	printf("______________________________\n");
 }
-
 void updateTexturePixels() {
 	sdlTexturePixels = NULL;
 	
@@ -258,7 +257,6 @@ void updateTexturePixels() {
 	SDL_UnlockTexture(sdlTexture);
 	SDL_FreeFormat(mappingFormat);
 }
-
 void _printCoords() {
 	printf("______________________________\n");
 	printf("reel min = %.16lf\n", mandRealMin);
@@ -267,6 +265,10 @@ void _printCoords() {
 	printf("imag max = %.16lf\n", mandImagMax);
 	printf("______________________________\n");
 }
+
+//___________________________________
+//Main function
+//***********************************
 
 int main() 
 {
