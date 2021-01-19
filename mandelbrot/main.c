@@ -20,7 +20,7 @@
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 
-#define MAND_REAL_MIN -2.5
+#define MAND_REAL_MIN -3.0
 #define MAND_REAL_MAX  1.5
 
 typedef struct Complex { double real, imag; } Complex;
