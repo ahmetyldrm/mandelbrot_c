@@ -15,6 +15,8 @@
 //#include "main.h"
 //#include "mandelbrot.h"
 
+#define HEX_ARRAY 0
+
 #define COLORMAP_FILE "gradient.gradient" 
 
 #define SCREEN_WIDTH 1280
@@ -44,7 +46,11 @@ Uint32 sdlTextureFormat = 0;
 int sdlTextureWidth  = 0;
 int sdlTextureHeight = 0;
 
+#if HEX_ARRAY
 char** hexColorArray;
+#else
+RGB_Color* rgbColorArray;
+#endif // HEX_ARRAY
 
 bool initSDL();
 void closeSDL();
@@ -168,11 +174,19 @@ bool initSDL(){
 					success = false;
 				}
 				else{
+#if HEX_ARRAY
 					hexColorArray = getHexArrayFromFile(COLORMAP_FILE);
 					if (hexColorArray == NULL) {
 						printf("Unable to create color array!\n");
 						success = false;
 					}
+#else
+					rgbColorArray = getRGBArrayFromFile(COLORMAP_FILE);
+					if (rgbColorArray == NULL) {
+						printf("Unable to create color array!\n");
+						success = false;
+					}
+#endif
 				}
 			}
 		}
@@ -184,16 +198,22 @@ void closeSDL() {
 	mandRealMax = 0;
 	mandImagMax = 0;
 	mandImagMin = 0;
+#if HEX_ARRAY
 	if (hexColorArray != NULL) {
 		freeHexArray(hexColorArray);
 		hexColorArray = NULL;
 	}
-	
+#else
+	if (rgbColorArray != NULL) {
+		freeRGBArray(rgbColorArray);
+		rgbColorArray = NULL;
+	}
+#endif
 	//Destroy texture
 	if (sdlTexture != NULL) {
-		SDL_DestroyTexture(sdlTexture);		
+		SDL_DestroyTexture(sdlTexture);
 		sdlTexture = NULL;
-	}	
+	}
 	sdlTexturePixels = NULL;
 	sdlTextureFormat = 0;
 	sdlTexturePitch = 0;
@@ -230,7 +250,7 @@ void updateTexturePixels() {
 		for (int y = 0; y < sdlTextureHeight; y++) {
 			for (int x = 0; x < sdlTextureWidth; x++) {
 				Complex cx = screenXYtoComplex(x, y, mandPrecision);
-				RGB_Color colorRGB;
+				RGB_Color colorRGB = { .r = 0, .g = 0, .b = 0, .errorFlag = false };
 
 				// Get iteration count
 				iterCount = getMandelbrotIterCount(cx.real, cx.imag);
@@ -241,11 +261,15 @@ void updateTexturePixels() {
 				}
 				else {
 					int mappedValue = (int)getMappedValue(iterCount, 0, MAND_MAX_ITER, 0, CURRENT_HEX_ARRAY_LENGTH - 1);
+#if HEX_ARRAY
 					char* colorHex = hexColorArray[mappedValue];
 					colorRGB = getRGBfromHexStr(colorHex);
 					if (colorRGB.errorFlag) {
 						printf("Could not convert hex to rgb: %s\n", colorHex);
 					}
+#else
+					colorRGB = rgbColorArray[mappedValue];
+#endif
 				}
 				// Set pixel value
 				sdlTexturePixels[y * sdlTexturePitch / (int)sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorRGB.r, colorRGB.g, colorRGB.b);
@@ -273,17 +297,29 @@ void _printCoords() {
 int main() 
 {
 	bool quit = false;
+	Uint32 currSDLTime = 0;
+	Uint32 prevSDLTime = 0;
+	Uint32 fpsCount = 0;
+	Uint32 frameTime = 0;
+
 	//Start up SDL and create window
 	if (!initSDL()){
 		printf("Failed to initialize!\n");
 	}
 	else{
+		prevSDLTime = SDL_GetTicks();
+		
+		//Calculate and update every pixel color value 
+		//based on mandelbrot iter count of corresponding complex number
 		updateTexturePixels();
+		
 		//Event handler
 		SDL_Event event;
-		
+	
 		//While application is running
 		while (!quit){
+			
+			
 			//Handle events on queue
 			while (SDL_PollEvent(&event) != 0){
 				//User requests quit
@@ -347,6 +383,11 @@ int main()
 						updateTexturePixels();
 						printf("updated\n");
 						break;
+
+					case SDLK_f:
+						printf("FPS: %u\n", fpsCount);
+						printf("Frame time: %u ms\n", frameTime);
+						break;
 					}
 				}
 			}
@@ -365,6 +406,17 @@ int main()
 
 			//Update screen
 			SDL_RenderPresent(sdlRenderer);
+
+			//Calculate fps
+			currSDLTime = SDL_GetTicks();
+			frameTime = currSDLTime - prevSDLTime;
+			if (frameTime == 0) {	//For eliminating divided by zero error
+				fpsCount = 0;
+			}
+			else {
+				fpsCount = 1000 / frameTime;
+			}
+			prevSDLTime = currSDLTime;
 		}
 	}
 

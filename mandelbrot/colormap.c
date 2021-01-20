@@ -6,15 +6,11 @@
 
 //#define LENGHTOF(x)  (sizeof(x) / sizeof((x)[0]))
 
-CURRENT_HEX_ARRAY_LENGTH = 0;
+int CURRENT_HEX_ARRAY_LENGTH = 0;
 
 //Converts hex string to RGB_Color
 RGB_Color getRGBfromHexStr(char* hexStr) {
-	RGB_Color color;
-	color.r = 0;
-	color.g = 0;
-	color.b = 0;
-	color.errorFlag = false;
+	RGB_Color color = { .r = 0, .g = 0, .b = 0, .errorFlag = false };
 	char tempStr[3];
 
 	if (strlen(hexStr) != 6) {
@@ -58,12 +54,20 @@ void freeHexArray(char** hexarray) {
 	}
 }
 
+void freeRGBArray(RGB_Color* rgbarray) {
+	if (rgbarray != NULL) {
+		free(rgbarray);
+		rgbarray = NULL;
+		printf("--> rgbarray freed\n");
+	}
+}
+
 char** getHexArrayFromFile(char* filename) {
 	//Must be freed! Call 'freeHexArray(char** hexarray)'
 
 	char** hexArray = malloc(MAX_COLOR_ARRAY_LENGTH * sizeof(char*));
 	if (hexArray == NULL) {
-		printf("Could not allocated hexArray\n");
+		printf("Could not allocated memory for hexArray\n");
 		return NULL;
 	}
 	char hexStr[8] = "";
@@ -75,20 +79,67 @@ char** getHexArrayFromFile(char* filename) {
 		return NULL;
 	}
 	for (int i = 0; (i < MAX_COLOR_ARRAY_LENGTH) && (fgets(hexStr, 8, fileptr) != NULL); i++) {
+		if (hexStr[6] != '\n' && strlen(hexStr) != 7) {
+			printf("Could not create hexArray[%d]\n", i);
+			printf("Gradient file corrupted. line: %d\n", i);
+			printf("Every line must be 6 char long hex string and end with line terminator.\n");
+			return NULL;
+		}
 		hexStr[6] = '\0';
 		hexArray[i] = (char*)malloc(HEX_STR_LENGTH * sizeof(char));
 		if (hexArray[i] == NULL) {
-			printf("Could not allocated hexArray[%d]\n", i);
+			printf("Could not allocate memory for hexArray[%d]\n", i);
 			return NULL;
 		}
 		strncpy(hexArray[i], hexStr, HEX_STR_LENGTH * sizeof(char));
 		printf("hexStr = %s\n", hexStr);
 		printf("hexArray[%d] = %s\n", i, hexArray[i]);
-		*hexStr = "";
+		//strcpy(hexStr, "");
 		CURRENT_HEX_ARRAY_LENGTH = i + 1;
 	}
 	fclose(fileptr);
+	fileptr = NULL;
 	return hexArray;
+}
+
+RGB_Color* getRGBArrayFromFile(char* filename) {
+	//Must be freed! Call 'freeRGBArray(RGB_Color* rgbarray)'
+
+	RGB_Color* rgbArray = malloc(MAX_COLOR_ARRAY_LENGTH * sizeof(RGB_Color));
+	if (rgbArray == NULL) {
+		printf("Could not allocated memory for rgbArray\n");
+		return NULL;
+	}
+	char hexStr[8] = "";
+	RGB_Color temprgb = { .r = 0, .g = 0, .b = 0, .errorFlag = false };
+
+	FILE* fileptr = fopen(filename, "r");
+	if (fileptr == NULL) {
+		printf("Could not open file: '%s'\n", filename);
+		return NULL;
+	}
+	for (int i = 0; (i < MAX_COLOR_ARRAY_LENGTH) && (fgets(hexStr, 8, fileptr) != NULL); i++) {
+		if (hexStr[6] != '\n' && strlen(hexStr) != 7) {
+			printf("Could not create hexArray[%d]\n", i);
+			printf("Gradient file corrupted. line: %d\n", i);
+			printf("Every line must be 6 char long hex string and end with line terminator.\n");
+			return NULL;
+		}
+		hexStr[6] = '\0';
+		temprgb = getRGBfromHexStr(hexStr);
+		if (temprgb.errorFlag == true) {
+			printf("Could not convert hex string to rgb color. line: %d\n", i);
+			return NULL;
+		}
+		rgbArray[i] = temprgb;
+		
+		printf("%s --> %d, %d, %d\n", hexStr, rgbArray[i].r, rgbArray[i].g, rgbArray[i].b);
+		//strcpy(hexStr, "");
+		CURRENT_HEX_ARRAY_LENGTH = i + 1;
+	}
+	fclose(fileptr);
+	fileptr = NULL;
+	return rgbArray;
 }
 
 float getMappedValue(int _value, int _valuestart, int _valueend, int _mappedstart, int _mappedend) {

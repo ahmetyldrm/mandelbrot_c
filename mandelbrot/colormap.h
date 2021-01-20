@@ -12,9 +12,9 @@ typedef struct RGB_Color {
 	bool errorFlag;
 } RGB_Color;
 
-//typedef char _hexString[7];
-
+void freeRGBArray(RGB_Color* rgbarray);
 void freeHexArray(char** hexarray);
 RGB_Color getRGBfromHexStr(char* hexStr);
 char** getHexArrayFromFile(char* filename);
+RGB_Color* getRGBArrayFromFile(char* filename);
 float getMappedValue(int _value, int _valuestart, int _valueend, int _mappedstart, int _mappedend);
