@@ -15,7 +15,7 @@
 //#include "main.h"
 //#include "mandelbrot.h"
 
-#define HEX_ARRAY 0
+#define HEX_ARRAY 0	//Blocks deprecated code segment
 
 #define COLORMAP_FILE "gradient.gradient" 
 
@@ -46,10 +46,10 @@ Uint32 sdlTextureFormat = 0;
 int sdlTextureWidth  = 0;
 int sdlTextureHeight = 0;
 
-#if HEX_ARRAY
+#if HEX_ARRAY	//Deprecated. Converting hex to rgb in every mandelbrot iteration slows process 
 char** hexColorArray;
 #else
-RGB_Color* rgbColorArray;
+RGB_Color* rgbColorArray; //This is faster. All hex values converted one time and stored as RGB_Color in array
 #endif // HEX_ARRAY
 
 bool initSDL();

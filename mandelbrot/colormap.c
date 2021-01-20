@@ -6,6 +6,8 @@
 
 //#define LENGHTOF(x)  (sizeof(x) / sizeof((x)[0]))
 
+//Stores the length of array obtained by getRGBArrayFromFile() or getHexArrayFromFile().
+//Used to free memory
 int CURRENT_HEX_ARRAY_LENGTH = 0;
 
 //Converts hex string to RGB_Color
@@ -39,6 +41,7 @@ RGB_Color getRGBfromHexStr(char* hexStr) {
 	return color;
 }
 
+//Deprecated. Must be called after getHexArrayFromFile()
 void freeHexArray(char** hexarray) {
 	for (int i = 0; i < CURRENT_HEX_ARRAY_LENGTH; i++) {
 		if (hexarray[i] != NULL) {
@@ -54,6 +57,7 @@ void freeHexArray(char** hexarray) {
 	}
 }
 
+//Must be called after getRGBArrayFromFile()
 void freeRGBArray(RGB_Color* rgbarray) {
 	if (rgbarray != NULL) {
 		free(rgbarray);
@@ -62,9 +66,12 @@ void freeRGBArray(RGB_Color* rgbarray) {
 	}
 }
 
+//Deprecated. Use 'getRGBArrayFromFile' instead.
+//Reads gradient file and stores every line 
+//(6 character color hex code ends with 'endl') in an array
+//Must be freed! Call 'freeHexArray(char** hexarray)'
 char** getHexArrayFromFile(char* filename) {
-	//Must be freed! Call 'freeHexArray(char** hexarray)'
-
+	//Converting hex to rgb in every mandelbrot iteration slows process.
 	char** hexArray = malloc(MAX_COLOR_ARRAY_LENGTH * sizeof(char*));
 	if (hexArray == NULL) {
 		printf("Could not allocated memory for hexArray\n");
@@ -102,9 +109,10 @@ char** getHexArrayFromFile(char* filename) {
 	return hexArray;
 }
 
+//Reads gradient file, converts every line (6 character color hex code ends with 'endl') 
+//into 'RGB_Color' structure and stores them in an array
+//Must be freed! Call 'freeRGBArray(RGB_Color* rgbarray)'
 RGB_Color* getRGBArrayFromFile(char* filename) {
-	//Must be freed! Call 'freeRGBArray(RGB_Color* rgbarray)'
-
 	RGB_Color* rgbArray = malloc(MAX_COLOR_ARRAY_LENGTH * sizeof(RGB_Color));
 	if (rgbArray == NULL) {
 		printf("Could not allocated memory for rgbArray\n");
@@ -142,6 +150,11 @@ RGB_Color* getRGBArrayFromFile(char* filename) {
 	return rgbArray;
 }
 
+//Maps a value between given limits. Example:
+//0___4______10
+//0_______X___________20
+//X = getMappedValue(4, 0, 10, 0, 20)
+//X -> 8
 float getMappedValue(int _value, int _valuestart, int _valueend, int _mappedstart, int _mappedend) {
 	float result = (_value - _valuestart) * (_mappedend - _mappedstart) / (float)(_valueend - _valuestart) + _mappedstart;
 	return result;
