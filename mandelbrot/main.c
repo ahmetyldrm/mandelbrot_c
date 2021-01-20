@@ -15,7 +15,7 @@
 //#include "main.h"
 //#include "mandelbrot.h"
 
-#define HEX_ARRAY 0	//Blocks deprecated code segment
+#define DEPRECATED_SEGMENT 0	//Blocks deprecated code segment
 
 #define COLORMAP_FILE "gradient.gradient" 
 
@@ -46,7 +46,7 @@ Uint32 sdlTextureFormat = 0;
 int sdlTextureWidth  = 0;
 int sdlTextureHeight = 0;
 
-#if HEX_ARRAY	//Deprecated. Converting hex to rgb in every mandelbrot iteration slows process 
+#if DEPRECATED_SEGMENT	//Deprecated. Converting hex to rgb in every mandelbrot iteration slows process 
 char** hexColorArray;
 #else
 RGB_Color* rgbColorArray; //This is faster. All hex values converted one time and stored as RGB_Color in array
@@ -174,7 +174,7 @@ bool initSDL(){
 					success = false;
 				}
 				else{
-#if HEX_ARRAY
+#if DEPRECATED_SEGMENT
 					hexColorArray = getHexArrayFromFile(COLORMAP_FILE);
 					if (hexColorArray == NULL) {
 						printf("Unable to create color array!\n");
@@ -198,7 +198,7 @@ void closeSDL() {
 	mandRealMax = 0;
 	mandImagMax = 0;
 	mandImagMin = 0;
-#if HEX_ARRAY
+#if DEPRECATED_SEGMENT
 	if (hexColorArray != NULL) {
 		freeHexArray(hexColorArray);
 		hexColorArray = NULL;
@@ -261,7 +261,7 @@ void updateTexturePixels() {
 				}
 				else {
 					int mappedValue = (int)getMappedValue(iterCount, 0, MAND_MAX_ITER, 0, CURRENT_HEX_ARRAY_LENGTH - 1);
-#if HEX_ARRAY
+#if DEPRECATED_SEGMENT
 					char* colorHex = hexColorArray[mappedValue];
 					colorRGB = getRGBfromHexStr(colorHex);
 					if (colorRGB.errorFlag) {
