@@ -1,10 +1,14 @@
 ﻿
-//TODO code cleanup
-//TODO make mandelbrot.c and h, main.h
-//TODO change slide function
-//TODO make iter count interval smaller
-//TODO make colors free of iter count
-//TODO use GNU mpfr library for infinite zoom
+/*
+TODO code cleanup
+TODO make mandelbrot.c and .h, main.h
+TODO add save texture feature
+TODO add fullscreen feature
+TODO change slide function
+TODO make iter count interval smaller
+TODO make colors free of iter count
+TODO use GNU mpfr library for infinite zoom
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -297,6 +301,7 @@ void _printCoords() {
 int main() 
 {
 	bool quit = false;
+	//For fps and frame time calculation
 	Uint32 currSDLTime = 0;
 	Uint32 prevSDLTime = 0;
 	Uint32 fpsCount = 0;
@@ -412,7 +417,6 @@ int main()
 			prevSDLTime = currSDLTime;
 		}
 	}
-
 	//Free resources and close SDL
 	closeSDL();
 
