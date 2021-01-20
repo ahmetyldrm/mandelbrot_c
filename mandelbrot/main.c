@@ -318,72 +318,65 @@ int main()
 	
 		//While application is running
 		while (!quit){
-			
-			
+		
 			//Handle events on queue
 			while (SDL_PollEvent(&event) != 0){
 				//User requests quit
 				if (event.type == SDL_QUIT){
 					quit = true;
 				}
-				else if (event.type == SDL_KEYDOWN)
-				{
+				else if (event.type == SDL_KEYDOWN){
+					
 					//Select surfaces based on key press
-					switch (event.key.keysym.sym)
-					{
+					switch (event.key.keysym.sym){
+
+					case SDLK_ESCAPE:
+						quit = true;
+						break;
 					case SDLK_KP_PLUS:
 						zoomIn(150);
 						updateTexturePixels();
 						printf("precision = %.16lf\n", getPrecision());
 						break;
-
 					case SDLK_KP_MINUS:
 						zoomOut(150);
 						updateTexturePixels();
 						printf("precision = %.16lf\n", getPrecision());
 						break;
-
 					case SDLK_RIGHT:
 						slide(25, 0);
 						updateTexturePixels();
 						_printCoords();
 						break;
-
 					case SDLK_LEFT:
 						slide(-25, 0);
 						updateTexturePixels();
 						_printCoords();
 						break;
-
 					case SDLK_UP:
 						slide(0, 25);
 						updateTexturePixels();
 						_printCoords();
 						break;
-
 					case SDLK_DOWN:
 						slide(0, -25);
 						updateTexturePixels();
 						_printCoords();
 						break;
-
 					case SDLK_KP_0:
 						if (MAND_MAX_ITER > 64) {
 							MAND_MAX_ITER -= 64;
 						}
 						printf("max iterations = %u\n", MAND_MAX_ITER+1);
 						break;
-					
 					case SDLK_KP_1:
 						MAND_MAX_ITER += 64;
 						printf("max iterations = %u\n", MAND_MAX_ITER+1);
 						break;
-
 					case SDLK_SPACE:
 						updateTexturePixels();
 						printf("updated\n");
 						break;
-
 					case SDLK_f:
 						printf("FPS: %u\n", fpsCount);
 						printf("Frame time: %u ms\n", frameTime);
