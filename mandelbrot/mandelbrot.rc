@@ -1,12 +1,11 @@
-// Microsoft Visual C++ ile oluþturulan kaynak betiði.
+// Microsoft Visual C++ generated resource script.
 //
-
 #include "resource.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
 //
-// TEXTINCLUDE 2 kaynaðýndan üretildi.
+// Generated from the TEXTINCLUDE 2 resource.
 //
 #include "winres.h"
 
@@ -14,10 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Türkçe (Türkiye) kaynaklarý
+// Türkçe (Türkiye) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE 31, 1
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_TRK)
+LANGUAGE LANG_TURKISH, SUBLANG_DEFAULT
+#pragma code_page(1254)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -25,18 +25,18 @@ LANGUAGE 31, 1
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE  
+2 TEXTINCLUDE 
 BEGIN
     "#include ""winres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE  
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -44,7 +44,14 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // Türkçe (Türkiye) kaynaklarý
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+
+#endif    // Türkçe (Türkiye) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -52,9 +59,10 @@ END
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
-// TEXTINCLUDE 3 kaynaðýndan oluþturuldu.
+// Generated from the TEXTINCLUDE 3 resource.
 //
 
 
 /////////////////////////////////////////////////////////////////////////////
-#endif    // APSTUDIO_INVOKED deðil
+#endif    // not APSTUDIO_INVOKED
+
