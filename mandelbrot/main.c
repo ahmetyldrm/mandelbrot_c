@@ -1,12 +1,12 @@
 ﻿
 /*
+TODO make colors free of iter count
 TODO code cleanup
 TODO make mandelbrot.c and .h, main.h
 TODO add save texture feature
 TODO add fullscreen feature
 TODO change slide function
 TODO make iter count interval smaller
-TODO make colors free of iter count
 TODO use GNU mpfr library for infinite zoom
 */
 
@@ -15,6 +15,7 @@ TODO use GNU mpfr library for infinite zoom
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 #include <omp.h>
 #include <SDL.h> 
 #include "colormap.h"
@@ -84,10 +85,10 @@ int getMandelbrotIterCount(double real, double imag){
 	Uint32 iter_count = 0;
 	double real_temp = 0.0;
 
-	while (iter_count < MAND_MAX_ITER) {
-		if ((real * real) + (imag * imag) >= 4.0) {
+	while (iter_count < MAND_MAX_ITER && (real * real) + (imag * imag) < 4.0) {
+		/*if ((real * real) + (imag * imag) >= 4.0) {
 			break;
-		}
+		}*/
 		iter_count++;
 		real_temp = real;
 		real = (real * real) - (imag * imag) + real0;
@@ -259,8 +260,12 @@ void updateTexturePixels() {
 	double mandPrecision = getPrecision();
 	if (sdlTexturePixels) {
 		clock_t t = clock();
-		int x, y;
-#pragma omp parallel for shared(sdlTexturePixels) private(x, y)
+		//int x, y;
+		int xy, x, y;
+#pragma omp parallel for schedule(dynamic,1) shared(sdlTexturePixels) private(x, y) collapse(2) 
+		/*for (xy = 0; xy < sdlTextureWidth * sdlTextureHeight; ++xy) {
+			x = xy / sdlTextureHeight;
+			y = xy % sdlTextureHeight;*/
 		for (y = 0; y < sdlTextureHeight; y++) {
 			for (x = 0; x < sdlTextureWidth; x++) {
 				Complex cx = screenXYtoComplex(x, y, mandPrecision);
@@ -274,15 +279,21 @@ void updateTexturePixels() {
 					colorRGB.r = 0; colorRGB.g = 0; colorRGB.b = 0;
 				}
 				else {
-					int mappedValue = (int)getMappedValue(iterCount, 0, MAND_MAX_ITER, 0, CURRENT_HEX_ARRAY_LENGTH - 1);
+					//int mappedValue = (int)getMappedValue(iterCount, 0, MAND_MAX_ITER, 0, CURRENT_HEX_ARRAY_LENGTH - 1);
 #if DEPRECATED_SEGMENT
 					char* colorHex = hexColorArray[mappedValue];
 					colorRGB = getRGBfromHexStr(colorHex);
 					if (colorRGB.errorFlag) {
 						printf("Could not convert hex to rgb: %s\n", colorHex);
 					}
+
 #else
-					colorRGB = rgbColorArray[mappedValue];
+					//colorRGB = rgbColorArray[mappedValue];
+					colorRGB = rgbColorArray[iterCount % 255];
+					//colorRGB = rgbColorArray[(int)getMappedValueF(0.5f * sin(0.1f * iterCount + 4.188f) + 0.5f, 0.0f, 1.0f, 0.0f, 255.0f)];
+					/*colorRGB.r = getMappedValueF(0.5f * sin(0.1f * iterCount) + 0.5f, 0.0f, 1.0f, 0.0f, 255.0f);
+					colorRGB.g = getMappedValueF(0.5f * sin(0.1f * iterCount + 1.094f) + 0.5f, 0.0f, 1.0f, 0.0f, 255.0f);
+					colorRGB.b = getMappedValueF(0.5f * sin(0.1f * iterCount + 4.188f) + 0.5f, 0.0f, 1.0f, 0.0f, 255.0f);*/
 #endif
 				}
 				// Set pixel value

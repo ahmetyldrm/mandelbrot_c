@@ -1,5 +1,5 @@
 #include "pch.h"
-//#include "..\mandelbrot\colormap.c"
+#include "..\mandelbrot\colormap.c"
 
 //#include "../mandelbrot/mandelbrot.h"
 //#include "../mandelbrot/mandelbrot.c"
@@ -22,4 +22,8 @@ TEST(RGBTest, IsEqual) {
 	EXPECT_EQ(color.g, 87) << "Incorrect green value";
 	EXPECT_EQ(color.b, 80) << "Incorrect blue value";
 	EXPECT_EQ(color.errorFlag, false) << "Length of hex string not right";*/
+}
+
+TEST(MapTest, IsEqual) {
+	EXPECT_FLOAT_EQ(getMappedValueF(0.9f, 0.0f, 1.0f, 0.0f, 100.0f), 90.0f);
 }

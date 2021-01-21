@@ -72,7 +72,7 @@ void freeRGBArray(RGB_Color* rgbarray) {
 //Must be freed! Call 'freeHexArray(char** hexarray)'
 char** getHexArrayFromFile(char* filename) {
 	//Converting hex to rgb in every mandelbrot iteration slows process.
-	char** hexArray = malloc(MAX_COLOR_ARRAY_LENGTH * sizeof(char*));
+	char** hexArray = (char**)malloc(MAX_COLOR_ARRAY_LENGTH * sizeof(char*));
 	if (hexArray == NULL) {
 		printf("Could not allocated memory for hexArray\n");
 		return NULL;
@@ -113,7 +113,7 @@ char** getHexArrayFromFile(char* filename) {
 //into 'RGB_Color' structure and stores them in an array
 //Must be freed! Call 'freeRGBArray(RGB_Color* rgbarray)'
 RGB_Color* getRGBArrayFromFile(char* filename) {
-	RGB_Color* rgbArray = malloc(MAX_COLOR_ARRAY_LENGTH * sizeof(RGB_Color));
+	RGB_Color* rgbArray = (RGB_Color*)malloc(MAX_COLOR_ARRAY_LENGTH * sizeof(RGB_Color));
 	if (rgbArray == NULL) {
 		printf("Could not allocated memory for rgbArray\n");
 		return NULL;
@@ -157,5 +157,9 @@ RGB_Color* getRGBArrayFromFile(char* filename) {
 //X -> 8
 float getMappedValue(int _value, int _valuestart, int _valueend, int _mappedstart, int _mappedend) {
 	float result = (_value - _valuestart) * (_mappedend - _mappedstart) / (float)(_valueend - _valuestart) + _mappedstart;
+	return result;
+}
+float getMappedValueF(float _value, float _valuestart, float _valueend, float _mappedstart, float _mappedend) {
+	float result = (_value - _valuestart) * (_mappedend - _mappedstart) / (_valueend - _valuestart) + _mappedstart;
 	return result;
 }
