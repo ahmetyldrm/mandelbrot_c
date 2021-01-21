@@ -289,7 +289,7 @@ void updateTexturePixels() {
 
 #else
 					//colorRGB = rgbColorArray[mappedValue];
-					colorRGB = rgbColorArray[iterCount % 255];
+					colorRGB = rgbColorArray[iterCount % (CURRENT_HEX_ARRAY_LENGTH - 1)];
 					//colorRGB = rgbColorArray[(int)getMappedValueF(0.5f * sin(0.1f * iterCount + 4.188f) + 0.5f, 0.0f, 1.0f, 0.0f, 255.0f)];
 					/*colorRGB.r = getMappedValueF(0.5f * sin(0.1f * iterCount) + 0.5f, 0.0f, 1.0f, 0.0f, 255.0f);
 					colorRGB.g = getMappedValueF(0.5f * sin(0.1f * iterCount + 1.094f) + 0.5f, 0.0f, 1.0f, 0.0f, 255.0f);
