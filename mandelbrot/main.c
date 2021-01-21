@@ -14,6 +14,8 @@ TODO use GNU mpfr library for infinite zoom
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
+#include <omp.h>
 #include <SDL.h> 
 #include "colormap.h"
 //#include "main.h"
@@ -49,6 +51,8 @@ int sdlTexturePitch = 0;
 Uint32 sdlTextureFormat = 0;
 int sdlTextureWidth  = 0;
 int sdlTextureHeight = 0;
+
+double last_texture_time_sec = 0.0;
 
 #if DEPRECATED_SEGMENT	//Deprecated. Converting hex to rgb in every mandelbrot iteration slows process 
 char** hexColorArray;
@@ -197,6 +201,7 @@ bool initSDL(){
 	}
 	return success;
 }
+
 void closeSDL() {
 	mandRealMin = 0;
 	mandRealMax = 0;
@@ -229,6 +234,7 @@ void closeSDL() {
 	sdlWindow = NULL;
 	sdlRenderer = NULL;
 }
+
 void _printTextureSize() {
 	printf("______________________________\n");
 	printf("texture width = %d\n", sdlTextureWidth);
@@ -237,6 +243,7 @@ void _printTextureSize() {
 	printf("imag point = %d\n", getImagPointCount());
 	printf("______________________________\n");
 }
+
 void updateTexturePixels() {
 	sdlTexturePixels = NULL;
 	
@@ -251,8 +258,11 @@ void updateTexturePixels() {
 	SDL_PixelFormat* mappingFormat = SDL_AllocFormat(sdlTextureFormat);
 	double mandPrecision = getPrecision();
 	if (sdlTexturePixels) {
-		for (int y = 0; y < sdlTextureHeight; y++) {
-			for (int x = 0; x < sdlTextureWidth; x++) {
+		clock_t t = clock();
+		int x, y;
+#pragma omp parallel for shared(sdlTexturePixels) private(x, y)
+		for (y = 0; y < sdlTextureHeight; y++) {
+			for (x = 0; x < sdlTextureWidth; x++) {
 				Complex cx = screenXYtoComplex(x, y, mandPrecision);
 				RGB_Color colorRGB = { .r = 0, .g = 0, .b = 0, .errorFlag = false };
 
@@ -279,12 +289,15 @@ void updateTexturePixels() {
 				sdlTexturePixels[y * sdlTexturePitch / (int)sizeof(int) + x] = SDL_MapRGB(mappingFormat, colorRGB.r, colorRGB.g, colorRGB.b);
 			}
 		}
+		t = clock() - t;
+		last_texture_time_sec = ((double)t) / CLOCKS_PER_SEC;
 	}
 	mandPrecision = 0;
 	iterCount = 0;
 	SDL_UnlockTexture(sdlTexture);
 	SDL_FreeFormat(mappingFormat);
 }
+
 void _printCoords() {
 	printf("______________________________\n");
 	printf("reel min = %.16lf\n", mandRealMin);
@@ -330,9 +343,8 @@ int main()
 				if (event.type == SDL_QUIT){
 					quit = true;
 				}
+				//Key press events
 				else if (event.type == SDL_KEYDOWN){
-					
-					//Select surfaces based on key press
 					switch (event.key.keysym.sym){
 
 					case SDLK_ESCAPE:
@@ -386,9 +398,13 @@ int main()
 						printf("FPS: %u\n", fpsCount);
 						printf("Frame time: %u ms\n", frameTime);
 						break;
+					case SDLK_t:
+						printf("Last texture calculation time: %.10f seconds\n", last_texture_time_sec);
+						break;
 					}
 				}
 			}
+			
 			//Clear screen
 			SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 0xFF);
 			SDL_RenderClear(sdlRenderer);
