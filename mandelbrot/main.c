@@ -34,7 +34,7 @@ TODO use GNU mpfr library for infinite zoom
 
 typedef struct Complex { double real, imag; } Complex;
 
-Uint32 MAND_MAX_ITER = 127;
+unsigned int MAND_MAX_ITER = 127;
 
 double mandRealMin = MAND_REAL_MIN;
 double mandRealMax = MAND_REAL_MAX;
@@ -47,9 +47,9 @@ SDL_Window*   sdlWindow   = NULL;
 SDL_Renderer* sdlRenderer = NULL;
 SDL_Texture*  sdlTexture  = NULL;
 
-Uint32* sdlTexturePixels = NULL;
+int* sdlTexturePixels = NULL;
 int sdlTexturePitch = 0; 
-Uint32 sdlTextureFormat = 0;
+unsigned int sdlTextureFormat = 0;
 int sdlTextureWidth  = 0;
 int sdlTextureHeight = 0;
 
@@ -82,9 +82,9 @@ Complex screenXYtoComplex(int screenX, int screenY, double precision);
 int getMandelbrotIterCount(double real, double imag){
 	double real0 = real;
 	double imag0 = imag;
-	Uint32 iter_count = 0;
+	unsigned int iter_count = 0;
 	double real_temp = 0.0;
-
+	
 	while (iter_count < MAND_MAX_ITER && (real * real) + (imag * imag) < 4.0) {
 		/*if ((real * real) + (imag * imag) >= 4.0) {
 			break;
@@ -136,7 +136,7 @@ void slide(int x, int y) {
 Complex screenXYtoComplex(int screenX, int screenY, double precision) {
 	Complex c;
 	c.real = mandRealMin + (screenX * precision);
-	c.imag = mandImagMax - (screenY * precision);
+	c.imag = -mandImagMax + (screenY * precision);
 	return c;
 }
 
@@ -248,24 +248,23 @@ void _printTextureSize() {
 void updateTexturePixels() {
 	sdlTexturePixels = NULL;
 	
-	Uint32 iterCount = 0;
+	int iterCount = 0;
 
 	//Get texture information
 	SDL_QueryTexture(sdlTexture, &sdlTextureFormat, NULL, &sdlTextureWidth, &sdlTextureHeight);
 	_printTextureSize();
 	
-	SDL_LockTexture(sdlTexture, NULL, &sdlTexturePixels, &sdlTexturePitch);
+	SDL_LockTexture(sdlTexture, NULL, (void**)&sdlTexturePixels, &sdlTexturePitch);
 
 	SDL_PixelFormat* mappingFormat = SDL_AllocFormat(sdlTextureFormat);
 	double mandPrecision = getPrecision();
 	if (sdlTexturePixels) {
 		clock_t t = clock();
 		//int x, y;
-		int xy, x, y;
-#pragma omp parallel for schedule(dynamic,1) shared(sdlTexturePixels) private(x, y) collapse(2) 
-		/*for (xy = 0; xy < sdlTextureWidth * sdlTextureHeight; ++xy) {
-			x = xy / sdlTextureHeight;
-			y = xy % sdlTextureHeight;*/
+		int x, y;
+		//omp_set_nested(1);
+//#pragma omp parallel for private(x)
+#pragma omp parallel for schedule(static,1) shared(sdlTexturePixels) private(x) collapse(2) 
 		for (y = 0; y < sdlTextureHeight; y++) {
 			for (x = 0; x < sdlTextureWidth; x++) {
 				Complex cx = screenXYtoComplex(x, y, mandPrecision);
@@ -322,20 +321,21 @@ void _printCoords() {
 //Main function
 //***********************************
 
-int main() 
+int main(int argc, char* argv[])
 {
 	bool quit = false;
 	//For fps and frame time calculation
-	Uint32 currSDLTime = 0;
-	Uint32 prevSDLTime = 0;
-	Uint32 fpsCount = 0;
-	Uint32 frameTime = 0;
+	unsigned int currSDLTime = 0;
+	unsigned int prevSDLTime = 0;
+	unsigned int fpsCount = 0;
+	unsigned int frameTime = 0;
 
 	//Start up SDL and create window
 	if (!initSDL()){
 		printf("Failed to initialize!\n");
 	}
 	else{
+		//omp_set_nested(1);
 		prevSDLTime = SDL_GetTicks();
 		
 		//Calculate and update every pixel color value 
